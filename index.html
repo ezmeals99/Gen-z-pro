@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GenZ Pro - Multi Scanner</title>
+    <style>
+        body { background: #0b0e11; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; text-align: center; }
+        .header { background: #1e2329; padding: 20px 40px; border-bottom: 4px solid #fcd535; display: flex; justify-content: space-between; align-items: center; }
+        .nav-area { display: flex; gap: 15px; align-items: center; }
+        .long-term-wrapper { position: relative; }
+        
+        button { transition: transform 0.1s ease; outline: none; }
+        button:active { transform: scale(0.95); } 
+
+        .btn-long-term { background: #0ecb81; color: black; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .red-dot { display: none; position: absolute; top: -5px; right: -5px; width: 12px; height: 12px; background: #ff4d4d; border-radius: 50%; border: 2px solid #1e2329; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        
+        .search-input { padding: 10px; border-radius: 8px; border: 1px solid #444; background: #2b3139; color: white; width: 140px; outline: none; }
+        .btn-search { background: #fcd535; color: black; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        .controls { margin: 20px auto; padding: 15px; background: #1e2329; border-radius: 12px; display: flex; justify-content: center; gap: 20px; max-width: 900px; border: 1px solid #333; align-items: center;}
+        .glowing-wallet { animation: glow 1.5s infinite alternate; border: 1px solid #fcd535 !important; }
+        @keyframes glow { from { box-shadow: 0 0 5px #fcd535; } to { box-shadow: 0 0 20px #fcd535; } }
+        
+        .btn-scan { background: #fcd535; color: black; border: none; padding: 15px 50px; border-radius: 40px; font-weight: bold; cursor: pointer; font-size: 18px; margin: 15px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; padding: 20px; }
+        .card { background: #1e2329; padding: 25px; border-radius: 20px; border: 1px solid #333; text-align: left; }
+        .targets { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-top: 10px; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+
+        /* Login Overlay */
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 14, 17, 0.95); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .login-box { background: #1e2329; padding: 40px; border-radius: 15px; border: 2px solid #fcd535; width: 300px; }
+        .login-box input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #444; background: #2b3139; color: white; }
+        
+        .btn-login { background: #fcd535; color: black; border: none; padding: 10px; width: 97%; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-create { background: transparent; color: #fcd535; border: 1px solid #fcd535; padding: 10px; width: 97%; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        .btn-book { width: 100%; background: #0ecb81; color: black; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn-book:hover { background: #0ca66b; }
+
+        .user-icon {
+            width: 40px; height: 40px; background: #2b3139; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; border: 1px solid #444; transition: 0.2s;
+        }
+        .user-icon:hover { border-color: #fcd535; background: #1e2329; }
+        .user-icon svg { fill: #fcd535; width: 20px; height: 20px; }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 14, 17, 0.98); z-index: 2000; overflow-y: auto;
+        }
+        .modal-content {
+            max-width: 1000px; margin: 50px auto; padding: 20px;
+            background: #1e2329; border-radius: 20px; border: 1px solid #333;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;
+        }
+        .close-btn { color: #848e9c; font-size: 30px; font-weight: bold; cursor: pointer; }
+        .close-btn:hover { color: #f6465d; }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 150px;
+            height: 6px;
+            background: #444;
+            border-radius: 5px;
+            outline: none;
+            transition: background 0.3s;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #fcd535;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+        .slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #fcd535;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loginOverlay">
+    <div class="login-box">
+        <h2 id="loginTitle" style="color:#fcd535; margin-top:0;">GEN Z LOGIN</h2>
+        <p style="font-size: 12px; color: #848e9c;">Sign in or create a new account to continue</p>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        
+        <button id="mainLogBtn" class="btn-login" onclick="attemptLogin()">LOGIN</button>
+        <button id="mainCreateBtn" class="btn-create" onclick="attemptCreate()">CREATE NEW ACCOUNT</button>
+        
+        <div id="loginMsg" style="color:#f6465d; font-size:12px; margin-top:15px;"></div>
+    </div>
+</div>
+
+<div id="appContent" style="display: none;">
+    <div class="header">
+        <h2 style="margin:0">GEN Z PRO <span style="color:#fcd535">SCANNER</span></h2>
+        <div class="nav-area">
+            <button style="background:transparent; color:#f6465d; border:1px solid #f6465d; border-radius:5px; padding:5px 10px; cursor:pointer; font-weight:bold;" onclick="logout()">LOGOUT</button>
+            
+            <div class="long-term-wrapper">
+                <button class="btn-long-term" onclick="loadLongTerm()">LONG TERM</button>
+                <div id="notifDot" class="red-dot"></div>
+            </div>
+            <input type="text" id="sCoin" class="search-input" placeholder="Symbol (BTC...)" onkeypress="if(event.key === 'Enter') searchCoin()">
+            <button class="btn-search" onclick="searchCoin()">SEARCH</button>
+            
+            <div class="user-icon" onclick="openBookedTrades()" title="My Booked Trades">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div>
+            <label style="font-size:11px; color:#848e9c">WALLET (USDT)</label><br>
+            <input type="number" id="wallet" placeholder="Enter amount" style="background:#2b3139; color:white; border:1px solid #444; padding:8px; border-radius:5px; width:100px;">
+        </div>
+        
+        <div id="levArea">
+            <label style="font-size:11px; color:#848e9c">LEVERAGE: <span id="levVal" style="color:#fcd535; font-weight:bold;">15x</span></label><br>
+            <input type="range" id="lev" min="10" max="20" value="15" class="slider" oninput="document.getElementById('levVal').innerText = this.value + 'x'">
+        </div>
+
+        <div id="tfArea"><label style="font-size:11px; color:#848e9c">TIMEFRAME</label><br>
+            <select id="tf" style="background:#2b3139; color:white; border:1px solid #444; padding:8px; border-radius:5px;">
+                <option value="15m" selected>15m</option>
+                <option value="50m">50m</option>
+                <option value="45m">45m</option>
+                <option value="1h">1h</option>
+                <option value="4h">4h</option>
+                <option value="1d">1d</option>
+                <option value="1w">1w</option>
+            </select>
+        </div>
+    </div>
+
+    <button class="btn-scan" id="mainScanBtn" onclick="startScan()">SCAN MARKET</button>
+    <div id="status" style="color:#fcd535; font-size:13px; margin-bottom:10px;">Ready to Scan...</div>
+    
+    <div class="grid" id="grid"></div>
+</div>
+
+<div id="tradesModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 style="color:#fcd535; margin:0;">📂 MY BOOKED TRADES</h2>
+            <span class="close-btn" onclick="closeBookedTrades()">&times;</span>
+        </div>
+        <div class="grid" id="trackedGrid" style="padding:0;">
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'http://127.0.0.1:5000';
+    let scanInterval;
+    let isLongTermView = false;
+
+    // --- 🔐 AUTO LOGIN & LOCALSTORAGE SYSTEM ---
+    window.onload = function() {
+        const savedU = localStorage.getItem('genz_user');
+        const savedP = localStorage.getItem('genz_pass');
+        
+        if(savedU && savedP) {
+            autoLogin(savedU, savedP);
+        }
+    };
+
+    async function autoLogin(u, p) {
+        try {
+            const res = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
+            });
+            const data = await res.json();
+            if(data.status === "success") {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('appContent').style.display = 'block';
+            }
+        } catch(e) { console.error("Auto login failed."); }
+    }
+
+    // 1. Normal Login Function
+    async function attemptLogin() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        
+        if(!u || !p) {
+            document.getElementById('loginMsg').innerText = "Please fill all fields!";
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
+            });
+            const data = await res.json();
+            if(data.status === "success") {
+                localStorage.setItem('genz_user', u);
+                localStorage.setItem('genz_pass', p);
+
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('appContent').style.display = 'block';
+            } else {
+                document.getElementById('loginMsg').innerText = data.message;
+            }
+        } catch(e) { document.getElementById('loginMsg').innerText = "Backend not running!"; }
+    }
+
+    // 2. Create Account Function
+    function attemptCreate() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        
+        if(!u || !p) {
+            document.getElementById('loginMsg').innerText = "Please enter username & password to create account!";
+            return;
+        }
+        
+        // 🚨 2. වෙන Account එකකින් ලොග් වෙද්දී කලින් trades පේන එක නැති කරන්න
+        // අපි user මාරු වෙද්දී browser එකේ save වෙච්ච පරණ trade details අයින් කරනවා.
+        localStorage.clear(); 
+        
+        localStorage.setItem('genz_user', u);
+        localStorage.setItem('genz_pass', p);
+        
+        document.getElementById('loginMsg').style.color = "#0ecb81";
+        document.getElementById('loginMsg').innerText = "New Account Session Created! Loading app...";
+        
+        setTimeout(() => {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('appContent').style.display = 'block';
+            // Grid එක සහ Tracked trades වල UI ටික අලුත් user ට අනුව clear කරනවා
+            document.getElementById('grid').innerHTML = "";
+            document.getElementById('trackedGrid').innerHTML = "";
+        }, 1500);
+    }
+
+    // Logout Function
+    function logout() {
+        localStorage.clear();
+        location.reload(); 
+    }
+
+    // Modal Controls
+    function openBookedTrades() {
+        document.getElementById('tradesModal').style.display = 'block';
+        loadTrackedTrades(); 
+    }
+
+    function closeBookedTrades() {
+        document.getElementById('tradesModal').style.display = 'none';
+    }
+
+    // Main Scan
+    async function startScan() {
+        isLongTermView = false;
+        document.getElementById('levArea').style.display = 'block';
+        document.getElementById('tfArea').style.display = 'block';
+        
+        const walletEl = document.getElementById('wallet');
+        if(walletEl) walletEl.classList.remove('glowing-wallet');
+        
+        if(scanInterval) clearInterval(scanInterval);
+        updateData(); 
+        scanInterval = setInterval(updateData, 5000); 
+    }
+
+    // Long Term Scan
+    async function loadLongTerm() {
+        isLongTermView = true;
+        if(scanInterval) clearInterval(scanInterval);
+        
+        document.getElementById('levArea').style.display = 'none';
+        document.getElementById('tfArea').style.display = 'none';
+        
+        const walletEl = document.getElementById('wallet');
+        if(walletEl) walletEl.classList.add('glowing-wallet');
+        
+        document.getElementById('notifDot').style.display = 'none'; 
+        document.getElementById('status').innerText = "Loading High Accuracy Long-Term Trades...";
+        
+        try {
+            const res = await fetch(`${API_URL}/get-long-term`);
+            const data = await res.json();
+            renderLongTerm(data.signals);
+            document.getElementById('status').innerText = "Displaying Long-Term Safe Investments.";
+        } catch(e) { console.error(e); }
+    }
+
+    // Search Coin
+    async function searchCoin() {
+        const coin = document.getElementById('sCoin').value.trim();
+        const tf = document.getElementById('tf').value;
+        if(!coin) return;
+
+        if(scanInterval) clearInterval(scanInterval); 
+        document.getElementById('status').innerText = `Searching and Calculating ${coin.toUpperCase()}...`;
+
+        try {
+            const res = await fetch(`${API_URL}/search-coin?symbol=${coin}&tf=${tf}`);
+            if(!res.ok) {
+                document.getElementById('status').innerText = "Coin not found on Binance or API error. Try symbols like 'BTC'.";
+                return;
+            }
+            const data = await res.json();
+            const grid = document.getElementById('grid');
+            grid.innerHTML = ""; 
+            
+            renderShortTerm([data]); 
+            document.getElementById('status').innerText = `Displaying result for ${coin.toUpperCase()}.`;
+        } catch(e) {
+            console.error(e);
+            document.getElementById('status').innerText = "Error fetching search data.";
+        }
+    }
+
+    // Polling function
+    async function updateData() {
+        const tf = document.getElementById('tf').value;
+        try {
+            const res = await fetch(`${API_URL}/get-all-data?tf=${tf}`);
+            const data = await res.json();
+            
+            renderShortTerm(data.signals);
+            document.getElementById('status').innerText = `Live Scanning on ${tf}...`;
+            
+            if(data.has_long_term && !isLongTermView) {
+                document.getElementById('notifDot').style.display = 'block';
+            }
+        } catch(e) { console.error("Update Error"); }
+    }
+
+    // Short Term UI Render
+    function renderShortTerm(coins) {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = ""; 
+        
+        let wallet = parseFloat(document.getElementById('wallet').value);
+        if(isNaN(wallet)) wallet = 100; 
+        
+        const lev = parseInt(document.getElementById('lev').value);
+        const fee = (wallet * lev * 0.00018) * 2;
+
+        coins.forEach(c => {
+            let color = "#fcd535"; 
+            if(c.trend === "UPTREND") color = "#0ecb81";
+            if(c.trend === "DOWNTREND") color = "#f6465d";
+            
+            const calcPnL = (t) => {
+                let diff = c.trend === "UPTREND" ? (t - c.entry) / c.entry : (c.entry - t) / c.entry;
+                return ((wallet * lev * diff) - fee).toFixed(2);
+            };
+
+            grid.innerHTML += `
+                <div class="card" style="border-top: 4px solid ${color}">
+                    <div style="float:right; color:#fcd535; font-size:12px;">${c.accuracy}% Acc.</div>
+                    <div style="font-size:22px; font-weight:bold">${c.symbol}/USDT</div>
+                    <div style="color:${color}; font-weight:bold; font-size:12px">${c.trend}</div>
+                    <div style="font-size:28px; font-weight:bold; margin:10px 0;">$${c.price}</div>
+                    <div style="color:#fcd535; font-size:13px;">ENTRY: $${c.entry} | FEE: -$${fee.toFixed(2)}</div>
+                    
+                    ${c.trend !== "SIDEWAYS" ? `
+                    <div class="targets">
+                        <div class="row">TP 1 <span style="color:#0ecb81">$${c.tp1} (+$${calcPnL(c.tp1)})</span></div>
+                        <div class="row">TP 2 <span style="color:#0ecb81">$${c.tp2} (+$${calcPnL(c.tp2)})</span></div>
+                        <div class="row">TP 3 <span style="color:#0ecb81">$${c.tp3} (+$${calcPnL(c.tp3)})</span></div>
+                        <div class="row" style="color:#f6465d; border-top:1px solid #444; padding-top:8px; margin-top:5px;">STOP LOSS <span>$${c.sl} (-$${calcPnL(c.sl)})</span></div>
+                    </div>
+                    <button class="btn-book" onclick="bookTrade('${c.symbol}', ${c.entry}, ${c.tp1}, ${c.sl})">📌 BOOK TRADE</button>
+                    ` : `<div class="targets" style="text-align:center; color:#848e9c;">Market is not clear. Better to Wait.</div>`}
+                </div>
+            `;
+        });
+    }
+
+    // Long Term UI Render
+    function renderLongTerm(coins) {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = "";
+        
+        let wallet = parseFloat(document.getElementById('wallet').value);
+        if(isNaN(wallet)) wallet = 100;
+        
+        coins.forEach(c => {
+            const estimatedProfit = (wallet * (c.profit_percentage / 100)).toFixed(2);
+            
+            grid.innerHTML += `
+                <div class="card" style="border: 2px solid #0ecb81; background: #0b1c15;">
+                    <div style="float:right; background:#0ecb81; color:black; padding:2px 8px; border-radius:5px; font-size:12px; font-weight:bold;">${c.accuracy}% ACCURACY</div>
+                    <div style="font-size:24px; font-weight:bold; color:#0ecb81;">${c.symbol} / USDT</div>
+                    <div style="font-size:11px; color:#848e9c; margin-bottom:10px;">LONG TERM HOLD</div>
+                    <div style="font-size:32px; font-weight:bold; margin-bottom:15px;">$${c.price}</div>
+                    <div class="targets" style="border-left: 4px solid #0ecb81;">
+                        <div class="row">ENTRY PRICE <span>$${c.entry}</span></div>
+                        <div class="row" style="color:#0ecb81; font-weight:bold;">TARGET (TP) <span>$${c.tp_long}</span></div>
+                        <div class="row" style="color:#f6465d;">SAFETY STOP <span>$${c.sl_long}</span></div>
+                    </div>
+                    <div style="background: rgba(252, 213, 53, 0.1); padding: 10px; border-radius: 8px; margin-top: 15px; text-align: center;">
+                        <div style="color: #fcd535; font-weight: bold; font-size: 16px;">ESTIMATED PROFIT: +$${estimatedProfit} (${c.profit_percentage}%)</div>
+                        <div style="color: #848e9c; font-size: 12px; margin-top: 5px;">Estimated Duration: ${c.estimated_duration}</div>
+                    </div>
+                    <button class="btn-book" style="background:#fcd535" onclick="bookTrade('${c.symbol}', ${c.entry}, ${c.tp_long}, ${c.sl_long})">📌 BOOK TRADE</button>
+                </div>
+            `;
+        });
+    }
+
+    // Book Trades to DB
+    async function bookTrade(symbol, entry, tp, sl) {
+        try {
+            const res = await fetch(`${API_URL}/book-trade`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symbol: symbol, entry: entry, tp: tp, sl: sl })
+            });
+            const data = await res.json();
+            alert(data.message);
+        } catch(e) { console.error(e); }
+    }
+
+    // Load Booked Trades to Pop-up
+    async function loadTrackedTrades() {
+        const trackedGrid = document.getElementById('trackedGrid');
+        try {
+            const res = await fetch(`${API_URL}/my-trades`);
+            const data = await res.json();
+            trackedGrid.innerHTML = "";
+
+            if(data.my_trades.length === 0) {
+                trackedGrid.innerHTML = `<div style="color:#848e9c; text-align:center; grid-column:1/-1; margin-top:20px;">No trades booked yet.</div>`;
+                return;
+            }
+
+            data.my_trades.forEach(t => {
+                let statusColor = "#fcd535";
+                if(t.status === "TP HIT") statusColor = "#0ecb81";
+                if(t.status === "SL HIT") statusColor = "#f6465d";
+
+                trackedGrid.innerHTML += `
+                    <div class="card" style="border-left: 4px solid ${statusColor}; background: #12161c;">
+                        <div style="float:right; color:${statusColor}; font-weight:bold; font-size:12px;">${t.status}</div>
+                        <div style="font-size:18px; font-weight:bold">${t.symbol}/USDT</div>
+                        <div style="font-size:11px; color:#848e9c;">Booked: ${t.time}</div>
+                        
+                        <div class="targets" style="font-size:13px;">
+                            <div class="row">Entry: <span>$${t.entry}</span></div>
+                            <div class="row" style="color:#0ecb81;">Target (TP): <span>$${t.tp}</span></div>
+                            <div class="row" style="color:#f6465d;">Stop Loss: <span>$${t.sl}</span></div>
+                            <div class="row" style="border-top: 1px solid #444; padding-top:5px; margin-top:5px;">Live Price: <span>$${t.current_price}</span></div>
+                        </div>
+                    </div>
+                `;
+            });
+        } catch(e) { console.error(e); }
+    }
+
+    // Close modal on click outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('tradesModal');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+</body>
+</html>
