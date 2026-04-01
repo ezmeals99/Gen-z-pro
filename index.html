@@ -169,7 +169,8 @@
 </div>
 
 <script>
-    const API_URL = 'http://127.0.0.1:5000';
+    // 💡 මෙතනට තමයි ඔයාගේ PythonAnywhere URL එක දැම්මේ
+    const API_URL = 'https://alexzzooo.pythonanywhere.com';
     let scanInterval;
     let isLongTermView = false;
 
@@ -237,8 +238,6 @@
             return;
         }
         
-        // 🚨 2. වෙන Account එකකින් ලොග් වෙද්දී කලින් trades පේන එක නැති කරන්න
-        // අපි user මාරු වෙද්දී browser එකේ save වෙච්ච පරණ trade details අයින් කරනවා.
         localStorage.clear(); 
         
         localStorage.setItem('genz_user', u);
@@ -250,7 +249,6 @@
         setTimeout(() => {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContent').style.display = 'block';
-            // Grid එක සහ Tracked trades වල UI ටික අලුත් user ට අනුව clear කරනවා
             document.getElementById('grid').innerHTML = "";
             document.getElementById('trackedGrid').innerHTML = "";
         }, 1500);
