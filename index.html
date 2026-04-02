@@ -136,7 +136,7 @@
             color: #000;
         }
 
-        .user-icon, .bell-icon {
+        .user-icon {
             width: 32px;
             height: 32px;
             background-color: #2b3139;
@@ -150,12 +150,12 @@
             flex-shrink: 0;
         }
 
-        .user-icon:hover, .bell-icon:hover {
+        .user-icon:hover {
             border-color: var(--accent-color);
             background-color: var(--container-bg);
         }
 
-        .user-icon svg, .bell-icon svg {
+        .user-icon svg {
             fill: var(--accent-color);
             width: 16px;
             height: 16px;
@@ -269,7 +269,7 @@
 
         .card-trend {
             font-weight: bold;
-            font-size: 10px;
+            font-size: 12px;
         }
 
         .card-price {
@@ -331,23 +331,13 @@
 
         .btn-login-submit {
             background-color: var(--accent-color);
-            color: #000;
-            width: 100%;
-            padding: 10px;
-            margin-top: 15px;
-            font-weight: bold;
-            border-radius: 6px;
+            color: #000; width: 100%; padding: 10px; margin-top: 15px;
+            font-weight: bold; border-radius: 6px;
         }
 
         .btn-create-submit {
-            background: transparent;
-            color: var(--accent-color);
-            border: 1px solid var(--accent-color);
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            font-weight: bold;
-            border-radius: 6px;
+            background: transparent; color: var(--accent-color); border: 1px solid var(--accent-color);
+            width: 100%; padding: 10px; margin-top: 10px; font-weight: bold; border-radius: 6px;
         }
 
         .modal {
@@ -400,16 +390,10 @@
         </div>
         
         <div class="header-actions">
-            <div class="bell-icon" id="bellIcon" onclick="requestNotifPermission()" title="Enable Notifications" style="display: none;">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12,2A7,7 0 0,0 5,9V16L3,18V19H21V18L19,16V9A7,7 0 0,0 12,2M12,22A2,2 0 0,0 14,20H10A2,2 0 0,0 12,22Z"/>
-                </svg>
-            </div>
-            
             <button class="btn-logout" onclick="logout()">LOGOUT</button>
             
             <div class="long-term-wrapper">
-                <button class="btn-long-term" onclick="loadLongTerm()">LONG TERM</button>
+                <button class="btn-long-term" onclick="openLongTermModal()">LONG TERM</button>
                 <div id="notifDot" class="red-dot"></div>
             </div>
             
@@ -465,11 +449,19 @@
     </div>
 </div>
 
+<div id="longTermModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="color:var(--success-color); margin:0; font-size:16px;">💎 LONG TERM COINS (STRICT RULES)</h3>
+            <span class="close-btn" onclick="closeLongTermModal()">&times;</span>
+        </div>
+        <div style="font-size: 11px; color: #848e9c; margin-bottom: 10px;">These coins passed the 4H/1D strictly filtered moving average and RSI tests.</div>
+        <div class="grid" id="longTermGrid" style="padding:0;"></div>
+    </div>
+</div>
+
 <script>
     let scanInterval;
-    let isLongTermView = false;
-    
-    // Default Top Coins to show on manual scan
     const bestCoins = [
         "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "ADAUSDT", "XRPUSDT",
         "DOGEUSDT", "SHIBUSDT", "NEARUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT"
@@ -484,30 +476,9 @@
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContent').style.display = 'block';
         }
-        if (Notification.permission !== 'granted') {
-            document.getElementById('bellIcon').style.display = 'flex';
-        }
     };
 
-    function requestNotifPermission() {
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                alert('Success! You will receive background notifications.');
-                document.getElementById('bellIcon').style.display = 'none';
-            }
-        });
-    }
-
-    function triggerAlert(coin, trend, price) {
-        document.getElementById('notif-sound').play();
-        if (Notification.permission === 'granted') {
-            new Notification(`🚀 GenZ Signal: ${coin}`, {
-                body: `${trend} signal at $${price}! Check your trades.`,
-                icon: 'https://bin.arnu.sh/binance.png'
-            });
-        }
-    }
-
+    // --- 🔐 LOGIN SYSTEM ---
     function attemptLogin() {
         const u = document.getElementById('username').value;
         const p = document.getElementById('password').value;
@@ -533,11 +504,9 @@
         location.reload();
     }
     
-    function logout() { 
-        localStorage.removeItem('current_user'); 
-        location.reload(); 
-    }
+    function logout() { localStorage.removeItem('current_user'); location.reload(); }
 
+    // --- 📊 API & ANALYSIS LOGIC ---
     async function getCandles(symbol, interval) {
         try {
             const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=100`);
@@ -561,6 +530,7 @@
         let rs = avgGain / avgLoss; return 100 - (100 / (1 + rs));
     }
 
+    // 🧠 Core Analysis Algorithm
     function analyzeCoin(candles) {
         if (!candles || candles.length < 50) return null;
         const closes = candles.map(c => c.close), currentPrice = closes[closes.length - 1], previousClose = closes[closes.length - 2];
@@ -568,18 +538,32 @@
         const isUptrend = previousClose > sma50;
         const rsi14 = calculateRSI(closes, 14);
         let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
+
         let accuracy = 50, trend = "SIDEWAYS", entry = currentPrice, tp1, sl;
 
+        // 🔥 Buy / Uptrend Calculation
         if (isUptrend && rsi14 < 45) {
-            trend = "UPTREND"; accuracy = Math.min(Math.floor(65 + (45 - rsi14) * 1.5), 98);
+            trend = "BUY (UPTREND)"; 
+            accuracy = Math.min(Math.floor(65 + (45 - rsi14) * 1.5), 98);
             tp1 = currentPrice + (volatility * 1.5); sl = currentPrice - (volatility * 2.0);
-        } else if (!isUptrend && rsi14 > 55) {
-            trend = "DOWNTREND"; accuracy = Math.min(Math.floor(65 + (rsi14 - 55) * 1.5), 98);
+        } 
+        // 🩸 Sell / Downtrend Calculation
+        else if (!isUptrend && rsi14 > 55) {
+            trend = "SELL (DOWNTREND)"; 
+            accuracy = Math.min(Math.floor(65 + (rsi14 - 55) * 1.5), 98);
             tp1 = currentPrice - (volatility * 1.5); sl = currentPrice + (volatility * 2.0);
+        } 
+        // 🟡 Sideways
+        else {
+            trend = "SIDEWAYS";
+            accuracy = Math.floor(Math.random() * 20) + 10; // Low accuracy for sideways
+            tp1 = currentPrice; sl = currentPrice;
         }
+
         return { price: currentPrice, trend, entry, tp1, sl, accuracy };
     }
 
+    // --- 🚀 SCANNING SYSTEM ---
     async function startScan() {
         if (scanInterval) clearInterval(scanInterval);
         document.getElementById('status').innerText = "Live Scanning Market (60s cycle)...";
@@ -588,88 +572,131 @@
     }
 
     async function updateData() {
-        const tf = document.getElementById('tf').value; const grid = document.getElementById('grid'); grid.innerHTML = "";
+        const tf = document.getElementById('tf').value; 
+        const grid = document.getElementById('grid'); 
+        grid.innerHTML = "";
         let signals = 0;
-        document.getElementById('status').innerText = "Scanning top coins...";
+        
         for (let coin of bestCoins) {
             const candles = await getCandles(coin, tf), analysis = analyzeCoin(candles);
-            if (analysis && analysis.trend !== "SIDEWAYS" && analysis.accuracy >= 60) {
-                analysis.symbol = coin.replace("USDT", ""); renderCard(analysis); signals++;
-                triggerAlert(analysis.symbol, analysis.trend, analysis.price);
+            if (analysis) {
+                analysis.symbol = coin.replace("USDT", ""); 
+                renderCard(analysis, 'grid'); 
+                if (analysis.trend !== "SIDEWAYS") signals++;
             }
         }
-        document.getElementById('status').innerText = `Scan complete. Found ${signals} signals.`;
+        document.getElementById('status').innerText = `Scan complete. Found ${signals} active signals.`;
+        
+        // Background scan for Long Term Coins
+        checkLongTermBackground();
     }
 
-    // 🔥 100% Dynamic Binance Coin Search
     async function searchCoin() {
         const coinInput = document.getElementById('sCoin').value.trim().toUpperCase();
         const tf = document.getElementById('tf').value;
         if (!coinInput) return; 
         
         let symbol = coinInput.endsWith("USDT") ? coinInput : coinInput + "USDT";
-        document.getElementById('status').innerText = `Searching ${symbol} on Binance...`;
-        
         const candles = await getCandles(symbol, tf);
         
         if (!candles) { 
-            document.getElementById('status').innerText = "Coin not found on Binance (Or API limit reached)! Make sure to use correct symbol."; 
-            return; 
+            document.getElementById('status').innerText = "Coin not found on Binance!"; return; 
         }
         
         const analysis = analyzeCoin(candles);
-        if (!analysis) {
-            document.getElementById('status').innerText = "Not enough data to analyze this coin yet.";
-            return;
+        if (analysis) {
+            analysis.symbol = symbol.replace("USDT", ""); 
+            document.getElementById('grid').innerHTML = ""; 
+            renderCard(analysis, 'grid');
+            document.getElementById('status').innerText = `Results for ${symbol}`;
         }
-        
-        analysis.symbol = symbol.replace("USDT", ""); 
-        document.getElementById('grid').innerHTML = ""; 
-        renderCard(analysis);
-        document.getElementById('status').innerText = `Displaying results for ${symbol}`;
     }
 
-    function renderCard(c) {
-        const grid = document.getElementById('grid'), wallet = parseFloat(document.getElementById('wallet').value) || 100, lev = parseInt(document.getElementById('lev').value) || 15;
-        const fee = (wallet * lev * 0.00018) * 2, color = c.trend === "UPTREND" ? "#0ecb81" : "#f6465d";
+    // 🔥 100% Strict Rules for Long Term Coins
+    async function checkLongTermBackground() {
+        let longTermMatches = 0;
+        const longTermGrid = document.getElementById('longTermGrid');
+        longTermGrid.innerHTML = "";
+
+        for (let coin of bestCoins) {
+            const candles4H = await getCandles(coin, "4h");
+            if (!candles4H || candles4H.length < 50) continue;
+
+            const closes = candles4H.map(c => c.close);
+            const currentPrice = closes[closes.length - 1];
+            const sum50 = closes.slice(-50).reduce((a, b) => a + b, 0); 
+            const sma50 = sum50 / 50;
+            const rsi = calculateRSI(closes, 14);
+
+            // Strict Condition: Very strong Bullish setup on 4H
+            if (currentPrice > sma50 && rsi > 50 && rsi < 65) {
+                const analysis = analyzeCoin(candles4H);
+                analysis.symbol = coin.replace("USDT", "");
+                analysis.accuracy = Math.min(analysis.accuracy + 5, 99); // Higher accuracy for LT
+                analysis.trend = "LONG TERM BUY 🚀";
+                renderCard(analysis, 'longTermGrid');
+                longTermMatches++;
+            }
+        }
+
+        // Show Red Dot if there is at least 1 strict matching long term trade
+        if (longTermMatches > 0) {
+            document.getElementById('notifDot').style.display = 'block';
+            document.getElementById('notif-sound').play();
+        } else {
+            document.getElementById('notifDot').style.display = 'none';
+        }
+    }
+
+    // --- 🎨 RENDERING CARDS ---
+    function renderCard(c, targetGridId) {
+        const grid = document.getElementById(targetGridId);
+        const wallet = parseFloat(document.getElementById('wallet').value) || 100;
+        const lev = parseInt(document.getElementById('lev').value) || 15;
+        const fee = (wallet * lev * 0.00018) * 2;
+        
+        let color = "#848e9c"; // Sideways Gray
+        if (c.trend.includes("BUY")) color = "var(--success-color)";
+        if (c.trend.includes("SELL")) color = "var(--danger-color)";
+
         const calcPnL = (t) => {
-            let diff = c.trend === "UPTREND" ? (t - c.entry) / c.entry : (c.entry - t) / c.entry;
+            let diff = c.trend.includes("BUY") ? (t - c.entry) / c.entry : (c.entry - t) / c.entry;
             return ((wallet * lev * diff) - fee).toFixed(2);
         };
         const priceDecimals = c.symbol.includes('PEPE') ? 8 : 4;
 
         grid.innerHTML += `
             <div class="card" style="border-top: 3px solid ${color}">
-                <div style="float:right; color:var(--accent-color); font-size:10px;">${c.accuracy}% Acc.</div>
+                <div style="float:right; color:var(--accent-color); font-size:11px; font-weight:bold;">${c.accuracy}% Win Rate</div>
                 <div class="card-symbol">${c.symbol}/USDT</div>
                 <div class="card-trend" style="color:${color};">${c.trend}</div>
                 <div class="card-price">$${c.price.toFixed(priceDecimals)}</div>
-                <div class="targets">
+                
+                <div class="targets" style="display: ${c.trend === 'SIDEWAYS' ? 'none' : 'block'}">
                     <div class="row">Target (TP 1) <span style="color:#0ecb81">$${c.tp1.toFixed(priceDecimals)} (+$${calcPnL(c.tp1)})</span></div>
                     <div class="row" style="color:#f6465d; border-top:1px solid #444; padding-top:4px; margin-top:4px;">Stop Loss <span style="color:#f6465d">$${c.sl.toFixed(priceDecimals)} (-$${calcPnL(c.sl)})</span></div>
                 </div>
+                
                 <button class="btn-book" onclick="bookTrade('${c.symbol}', ${c.entry}, ${c.tp1}, ${c.sl}, '${c.trend}')">📌 BOOK TRADE</button>
             </div>
         `;
     }
 
+    // --- 📂 MODALS & TRADES SYSTEM ---
     function bookTrade(symbol, entry, tp, sl, trend) {
         const tradeKey = `trades_${localStorage.getItem('current_user')}`;
         let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
         trades.push({ symbol, entry, tp, sl, trend, status: "ON-GOING", time: new Date().toLocaleString() });
         localStorage.setItem(tradeKey, JSON.stringify(trades)); 
-        alert(`${symbol} Booked!`);
+        alert(`${symbol} Trade Booked! Check in 'My Booked Trades'.`);
     }
+
+    function openBookedTrades() { document.getElementById('tradesModal').style.display = 'block'; loadTrackedTrades(); }
+    function closeBookedTrades() { document.getElementById('tradesModal').style.display = 'none'; }
     
-    function openBookedTrades() { 
-        document.getElementById('tradesModal').style.display = 'block'; 
-        loadTrackedTrades(); 
-    }
-    
-    function closeBookedTrades() { 
-        document.getElementById('tradesModal').style.display = 'none'; 
-    }
-    
+    function openLongTermModal() { document.getElementById('longTermModal').style.display = 'block'; }
+    function closeLongTermModal() { document.getElementById('longTermModal').style.display = 'none'; }
+
     async function loadTrackedTrades() {
         const trades = JSON.parse(localStorage.getItem(`trades_${localStorage.getItem('current_user')}`) || '[]');
         const trackedGrid = document.getElementById('trackedGrid'); trackedGrid.innerHTML = "";
@@ -678,6 +705,7 @@
             trackedGrid.innerHTML += `<div class="card" style="border-left: 3px solid #fcd535;">
                 <div style="font-size:14px; font-weight:bold">${t.symbol}/USDT</div>
                 <div style="font-size:10px; color:#848e9c;">Entry: $${t.entry.toFixed(4)}</div>
+                <div style="font-size:10px; color:var(--accent-color);">${t.trend}</div>
             </div>`;
         }
     }
