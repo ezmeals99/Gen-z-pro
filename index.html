@@ -25,13 +25,13 @@
             overflow-x: hidden;
         }
 
-        /* --- 🛠️ Header (Corrected & Mobile Friendly) --- */
+        /* --- 🛠️ Header --- */
         .header {
             background-color: var(--container-bg);
             padding: 10px 15px;
             border-bottom: 4px solid var(--accent-color);
             display: flex;
-            flex-direction: column; /* Stack on mobile */
+            flex-direction: column;
             gap: 10px;
             align-items: center;
         }
@@ -59,12 +59,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-wrap: wrap; /* Important for wrapping on small screens */
-            gap: 8px; /* Consistent gap between buttons */
+            flex-wrap: wrap;
+            gap: 8px;
             padding-bottom: 5px;
         }
 
-        /* Base Button Styles */
         button {
             transition: transform 0.1s ease;
             outline: none;
@@ -127,7 +126,7 @@
             border: 1px solid #444;
             background-color: #2b3139;
             color: white;
-            width: 100px; /* Small default width */
+            width: 100px;
             outline: none;
             font-size: 12px;
         }
@@ -148,7 +147,7 @@
             cursor: pointer;
             border: 1px solid #444;
             transition: 0.2s;
-            flex-shrink: 0; /* Prevents shrinking */
+            flex-shrink: 0;
         }
 
         .user-icon:hover, .bell-icon:hover {
@@ -162,7 +161,7 @@
             height: 16px;
         }
 
-        /* --- 🕹️ Controls (Wallet & Leverage) --- */
+        /* --- 🕹️ Controls --- */
         .controls {
             margin: 15px auto;
             padding: 15px;
@@ -330,6 +329,28 @@
             font-size: 14px;
         }
 
+        /* හරි ක්‍රමයට හැදූ Login බටන්ස් */
+        .btn-login-submit {
+            background-color: var(--accent-color);
+            color: #000;
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            font-weight: bold;
+            border-radius: 6px;
+        }
+
+        .btn-create-submit {
+            background: transparent;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            font-weight: bold;
+            border-radius: 6px;
+        }
+
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(11, 14, 17, 0.98); z-index: 2000; overflow-y: auto;
@@ -347,22 +368,11 @@
 
         .close-btn { color: #848e9c; font-size: 24px; font-weight: bold; cursor: pointer; }
 
-        /* --- 📱 Mobile Specific Media Query --- */
         @media (max-width: 600px) {
-            .header-actions {
-                justify-content: space-between; /* Spreads buttons evenly */
-            }
-            .search-input {
-                width: 80px; /* Slightly smaller to fit */
-            }
-            .controls {
-                flex-direction: row; /* Keep elements in a row */
-                justify-content: space-around;
-                max-width: 95%;
-            }
-            .grid {
-                grid-template-columns: 1fr; /* Single column on very small screens */
-            }
+            .header-actions { justify-content: space-between; }
+            .search-input { width: 80px; }
+            .controls { flex-direction: row; justify-content: space-around; max-width: 95%; }
+            .grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -376,8 +386,10 @@
         <p style="font-size: 10px; color: #848e9c; margin-bottom: 15px;">Sign in or create account</p>
         <input type="text" id="username" placeholder="Username">
         <input type="password" id="password" placeholder="Password">
-        <button class="btn-login" style="background-color: var(--accent-color); color: #000; margin-top: 15px;" onclick="attemptLogin()">LOGIN</button>
-        <button class="btn-create" style="background: transparent; color: var(--accent-color); border: 1px solid var(--accent-color);" onclick="attemptCreate()">CREATE ACCOUNT</button>
+        
+        <button class="btn-login-submit" onclick="attemptLogin()">LOGIN</button>
+        <button class="btn-create-submit" onclick="attemptCreate()">CREATE ACCOUNT</button>
+        
         <div id="loginMsg" style="color:var(--danger-color); font-size:11px; margin-top:10px;"></div>
     </div>
 </div>
@@ -463,7 +475,6 @@
         "PEPEUSDT", "TRXUSDT", "UNIUSDT", "ATOMUSDT", "THETAUSDT", "CRVUSDT"
     ];
 
-    // --- 🔔 NOTIFICATION SYSTEM ---
     window.onload = function() {
         if (!localStorage.getItem('users')) {
             localStorage.setItem('users', JSON.stringify([{u: "alex", p: "123"}]));
@@ -497,7 +508,6 @@
         }
     }
 
-    // --- 🔐 LOGIN SYSTEM ---
     function attemptLogin() {
         const u = document.getElementById('username').value;
         const p = document.getElementById('password').value;
@@ -524,7 +534,6 @@
     }
     function logout() { localStorage.removeItem('current_user'); location.reload(); }
 
-    // --- 📊 API LOGIC ---
     async function getCandles(symbol, interval) {
         try {
             const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=100`);
@@ -549,13 +558,10 @@
     function analyzeCoin(candles) {
         if (!candles || candles.length < 50) return null;
         const closes = candles.map(c => c.close), currentPrice = closes[closes.length - 1], previousClose = closes[closes.length - 2];
-        
         const sum50 = closes.slice(-50).reduce((a,b)=>a+b, 0); const sma50 = sum50 / 50;
         const isUptrend = previousClose > sma50;
         const rsi14 = calculateRSI(closes, 14);
-
         let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
-
         let accuracy = 50, trend = "SIDEWAYS", entry = currentPrice, tp1, sl;
 
         if (isUptrend && rsi14 < 45) {
@@ -568,76 +574,6 @@
         return { price: currentPrice, trend, entry, tp1, sl, accuracy };
     }
 
-    // --- 🚀 ACTIONS ---
     async function startScan() {
         if (scanInterval) clearInterval(scanInterval);
         document.getElementById('status').innerText = "Live Scanning Market (60s cycle)...";
-        await updateData(); scanInterval = setInterval(updateData, 60000);
-    }
-    async function updateData() {
-        const tf = document.getElementById('tf').value; const grid = document.getElementById('grid'); grid.innerHTML = "";
-        let signals = 0;
-        for (let coin of bestCoins) {
-            const candles = await getCandles(coin, tf), analysis = analyzeCoin(candles);
-            if (analysis && analysis.trend !== "SIDEWAYS" && analysis.accuracy >= 70) {
-                analysis.symbol = coin.replace("USDT", ""); renderCard(analysis); signals++;
-                triggerAlert(analysis.symbol, analysis.trend, analysis.price);
-            }
-        }
-        document.getElementById('status').innerText = `Scan complete. Found ${signals} signals.`;
-    }
-    async function searchCoin() {
-        const coin = document.getElementById('sCoin').value.trim().toUpperCase(), tf = document.getElementById('tf').value;
-        if (!coin) return; const symbol = coin.endsWith("USDT") ? coin : coin + "USDT";
-        const candles = await getCandles(symbol, tf), analysis = analyzeCoin(candles);
-        if (!analysis) { document.getElementById('status').innerText = "Coin not found!"; return; }
-        analysis.symbol = symbol.replace("USDT", ""); document.getElementById('grid').innerHTML = ""; renderCard(analysis);
-    }
-
-    // --- 🎨 RENDERING ---
-    function renderCard(c) {
-        const grid = document.getElementById('grid'), wallet = parseFloat(document.getElementById('wallet').value) || 100, lev = parseInt(document.getElementById('lev').value) || 15;
-        const fee = (wallet * lev * 0.00018) * 2, color = c.trend === "UPTREND" ? "#0ecb81" : "#f6465d";
-        const calcPnL = (t) => {
-            let diff = c.trend === "UPTREND" ? (t - c.entry) / c.entry : (c.entry - t) / c.entry;
-            return ((wallet * lev * diff) - fee).toFixed(2);
-        };
-        const priceDecimals = c.symbol.includes('PEPE') ? 8 : 4;
-
-        grid.innerHTML += `
-            <div class="card" style="border-top: 3px solid ${color}">
-                <div style="float:right; color:var(--accent-color); font-size:10px;">${c.accuracy}% Acc.</div>
-                <div class="card-symbol">${c.symbol}/USDT</div>
-                <div class="card-trend" style="color:${color};">${c.trend}</div>
-                <div class="card-price">$${c.price.toFixed(priceDecimals)}</div>
-                <div class="targets">
-                    <div class="row">Target (TP 1) <span style="color:#0ecb81">$${c.tp1.toFixed(priceDecimals)} (+$${calcPnL(c.tp1)})</span></div>
-                    <div class="row" style="color:#f6465d; border-top:1px solid #444; padding-top:4px; margin-top:4px;">Stop Loss <span style="color:#f6465d">$${c.sl.toFixed(priceDecimals)} (-$${calcPnL(c.sl)})</span></div>
-                </div>
-                <button class="btn-book" onclick="bookTrade('${c.symbol}', ${c.entry}, ${c.tp1}, ${c.sl}, '${c.trend}')">📌 BOOK TRADE</button>
-            </div>
-        `;
-    }
-
-    function bookTrade(symbol, entry, tp, sl, trend) {
-        const tradeKey = `trades_${localStorage.getItem('current_user')}`;
-        let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
-        trades.push({ symbol, entry, tp, sl, trend, status: "ON-GOING", time: new Date().toLocaleString() });
-        localStorage.setItem(tradeKey, JSON.stringify(trades)); alert(`${symbol} Booked!`);
-    }
-    function openBookedTrades() { document.getElementById('tradesModal').style.display = 'block'; loadTrackedTrades(); }
-    function closeBookedTrades() { document.getElementById('tradesModal').style.display = 'none'; }
-    async function loadTrackedTrades() {
-        const trades = JSON.parse(localStorage.getItem(`trades_${localStorage.getItem('current_user')}`) || '[]');
-        const trackedGrid = document.getElementById('trackedGrid'); trackedGrid.innerHTML = "";
-        if (trades.length === 0) { trackedGrid.innerHTML = `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No trades booked.</div>`; return; }
-        for (let t of trades) {
-            trackedGrid.innerHTML += `<div class="card" style="border-left: 3px solid #fcd535;">
-                <div style="font-size:14px; font-weight:bold">${t.symbol}/USDT</div>
-                <div style="font-size:10px; color:#848e9c;">Entry: $${t.entry.toFixed(4)}</div>
-            </div>`;
-        }
-    }
-</script>
-</body>
-</html>
