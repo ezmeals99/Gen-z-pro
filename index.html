@@ -136,6 +136,32 @@
             color: #000;
         }
 
+        /* 👤 Profile / Booked Trades Button */
+        .user-icon {
+            width: 32px;
+            height: 32px;
+            background-color: #2b3139;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border: 1px solid #444;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+
+        .user-icon:hover {
+            border-color: var(--accent-color);
+            background-color: var(--container-bg);
+        }
+
+        .user-icon svg {
+            fill: var(--accent-color);
+            width: 16px;
+            height: 16px;
+        }
+
         /* --- 🕹️ Controls --- */
         .controls {
             margin: 15px auto;
@@ -262,6 +288,19 @@
             font-size: 11px;
         }
 
+        .btn-book {
+            width: 100%;
+            background-color: var(--success-color);
+            color: #000;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
         /* --- 🔐 Login & Modal --- */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -322,7 +361,7 @@
 <div id="appContent" style="display: none;">
     <div class="header">
         <div class="header-title-row">
-            <h2>GEN Z PRO <span>SCANNER</span></h2>
+            <h2>GEN Z PRO</h2>
         </div>
         <div class="header-actions">
             <button class="btn-logout" onclick="logout()">LOGOUT</button>
@@ -335,6 +374,12 @@
             <div class="search-container">
                 <input type="text" id="sCoin" class="search-input" placeholder="BTC..." onkeypress="if(event.key === 'Enter') searchCoin()">
                 <button class="btn-search" onclick="searchCoin()">SEARCH</button>
+            </div>
+
+            <div class="user-icon" onclick="openBookedTrades()" title="My Booked Trades">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+                </svg>
             </div>
         </div>
     </div>
@@ -368,10 +413,20 @@
     <div class="grid" id="grid"></div>
 </div>
 
+<div id="tradesModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="color:var(--accent-color); margin:0; font-size:16px;">📂 MY BOOKED TRADES</h3>
+            <span class="close-btn" onclick="closeBookedTrades()">&times;</span>
+        </div>
+        <div class="grid" id="trackedGrid" style="padding:0;"></div>
+    </div>
+</div>
+
 <div id="longTermModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 style="color:var(--success-color); margin:0; font-size:16px;">🚀 SCANNER 3: LONG TERM COINS</h3>
+            <h3 style="color:var(--success-color); margin:0; font-size:16px;">🚀 LONG TERM COINS</h3>
             <span class="close-btn" onclick="closeLongTermModal()">&times;</span>
         </div>
         <div class="grid" id="longTermGrid" style="padding:0;"></div>
@@ -381,8 +436,6 @@
 <script>
     let mainScanInterval;
     let longTermInterval;
-    
-    // Scanner 1 & 3 target coins (Around 12-14)
     const filteredCoins = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", "DOGEUSDT", "LINKUSDT", "SHIBUSDT", "SUIUSDT", "NEARUSDT", "FILUSDT"];
 
     window.onload = function() {
@@ -390,7 +443,7 @@
         if (localStorage.getItem('current_user')) {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContent').style.display = 'block';
-            startScanner3Background(); // Start background long term scan automatically
+            startScanner3Background(); 
         }
         if (Notification.permission !== "granted") Notification.requestPermission();
     };
@@ -441,9 +494,9 @@
     // ================= SCANNER 1: MAIN MARKET SCAN =================
     async function startMainScan() {
         if (mainScanInterval) clearInterval(mainScanInterval);
-        document.getElementById('status').innerText = "Scanning 85%+ Win Rate Trades...";
+        document.getElementById('status').innerText = "Scanning..."; // Fixed as requested
         await runMainScan();
-        mainScanInterval = setInterval(runMainScan, 60000); // Check every 60s
+        mainScanInterval = setInterval(runMainScan, 60000); 
     }
 
     async function runMainScan() {
@@ -463,7 +516,6 @@
             if (cur > sma50 && rsi < 40) { trend = "BUY"; accuracy = Math.min(80 + (40 - rsi) * 2, 99); }
             else if (cur < sma50 && rsi > 60) { trend = "SELL"; accuracy = Math.min(80 + (rsi - 60) * 2, 99); }
 
-            // Condition: 85%+ accuracy only and must be BUY or SELL
             if (accuracy >= 85) {
                 found++;
                 const fee = (wallet * lev * 0.00018) * 2;
@@ -474,19 +526,22 @@
                 const diff = trend === "BUY" ? (tp - cur) / cur : (cur - tp) / cur;
                 const earn = ((wallet * lev * diff) - fee).toFixed(2);
 
+                // Colors: Green for BUY, Red for SELL
+                let color = trend === 'BUY' ? 'var(--success-color)' : 'var(--danger-color)';
+
                 grid.innerHTML += `
-                    <div class="card" style="border-top: 3px solid ${trend === 'BUY' ? 'var(--success-color)' : 'var(--danger-color)'}">
+                    <div class="card" style="border-top: 3px solid ${color}">
                         <div style="float:right; color:var(--accent-color); font-size:11px;">${accuracy.toFixed(0)}% Win</div>
                         <div class="card-symbol">${symbol.replace("USDT", "")}/USDT</div>
-                        <div style="font-size:12px; font-weight:bold; color:${trend === 'BUY' ? 'var(--success-color)' : 'var(--danger-color)'}">${trend}</div>
+                        <div style="font-size:12px; font-weight:bold; color:${color}">${trend}</div>
                         <div class="card-price">$${cur.toFixed(symbol.includes('SHIB') ? 6 : 4)}</div>
                         <div class="targets">
                             <div class="row">Potential Earn <span style="color:#0ecb81">+$${earn}</span></div>
                             <div class="row">Target Price <span>$${tp.toFixed(symbol.includes('SHIB') ? 6 : 4)}</span></div>
                         </div>
+                        <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, '${trend}')">📌 BOOK TRADE</button>
                     </div>
                 `;
-                // Notification
                 document.getElementById('notif-sound').play();
                 if (Notification.permission === "granted") new Notification(`🚀 Signal Found: ${symbol}`, { body: `${trend} signal with ${accuracy.toFixed(0)}% Win Rate!` });
             }
@@ -501,7 +556,7 @@
         if (!coinInput) return;
         
         let symbol = coinInput.endsWith("USDT") ? coinInput : coinInput + "USDT";
-        document.getElementById('status').innerText = `Searching ${symbol}...`;
+        document.getElementById('status').innerText = `Searching...`;
         const candles = await getCandles(symbol, tf);
 
         if (!candles) { document.getElementById('status').innerText = "Coin not found on Binance!"; return; }
@@ -510,28 +565,29 @@
         const sum50 = closes.slice(-50).reduce((a,b)=>a+b, 0), sma50 = sum50 / 50;
         const rsi = calculateRSI(closes, 14);
 
-        let trend = "SIDEWAYS", accuracy = Math.floor(Math.random() * 20) + 40; // Base random for sideways
+        let trend = "SIDEWAYS", accuracy = Math.floor(Math.random() * 20) + 40; 
+        let color = "var(--accent-color)"; // Sideways = Yellow
         
-        if (cur > sma50 && rsi < 40) { trend = "BUY / UP"; accuracy = Math.min(70 + (40 - rsi) * 1.5, 98); }
-        else if (cur > sma50) { trend = "UP"; }
-        else if (cur < sma50 && rsi > 60) { trend = "SELL / DOWN"; accuracy = Math.min(70 + (rsi - 60) * 1.5, 98); }
-        else if (cur < sma50) { trend = "DOWN"; }
+        if (cur > sma50 && rsi < 40) { trend = "BUY / UP"; accuracy = Math.min(70 + (40 - rsi) * 1.5, 98); color = "var(--success-color)"; } // UP = Green
+        else if (cur > sma50) { trend = "UP"; color = "var(--success-color)"; }
+        else if (cur < sma50 && rsi > 60) { trend = "SELL / DOWN"; accuracy = Math.min(70 + (rsi - 60) * 1.5, 98); color = "var(--danger-color)"; } // DOWN = Red
+        else if (cur < sma50) { trend = "DOWN"; color = "var(--danger-color)"; }
 
         grid.innerHTML = `
-            <div class="card" style="border-top: 3px solid var(--accent-color)">
+            <div class="card" style="border-top: 3px solid ${color}">
                 <div style="float:right; color:var(--accent-color); font-size:11px;">${accuracy.toFixed(0)}% Win</div>
                 <div class="card-symbol">${symbol.replace("USDT", "")}/USDT</div>
-                <div style="font-size:14px; font-weight:bold;">Status: ${trend}</div>
+                <div style="font-size:14px; font-weight:bold; color:${color}">Status: ${trend}</div>
                 <div class="card-price">$${cur.toFixed(symbol.includes('SHIB') ? 6 : 4)}</div>
             </div>
         `;
-        document.getElementById('status').innerText = `Scanner 2: Details for ${symbol} displayed.`;
+        document.getElementById('status').innerText = `Search complete.`;
     }
 
     // ================= SCANNER 3: LONG TERM BACKGROUND SCAN =================
     function startScanner3Background() {
         runLongTermBackground();
-        longTermInterval = setInterval(runLongTermBackground, 180000); // Check every 3 mins
+        longTermInterval = setInterval(runLongTermBackground, 180000); 
     }
 
     async function runLongTermBackground() {
@@ -540,18 +596,17 @@
         let found = 0;
 
         for (let symbol of filteredCoins) {
-            const candles = await getCandles(symbol, "4h"); // Long term strictly on 4H chart
+            const candles = await getCandles(symbol, "4h"); 
             if (!candles) continue;
 
             const closes = candles.map(c => c.close), cur = closes[closes.length-1];
             const sum50 = closes.slice(-50).reduce((a,b)=>a+b, 0), sma50 = sum50 / 50;
             const rsi = calculateRSI(closes, 14);
 
-            // Strict Rules for Long Term Buy
             if (cur > sma50 && rsi > 50 && rsi < 65) {
                 found++;
                 let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
-                const tp = cur + (volatility * 5); // Larger targets for long term
+                const tp = cur + (volatility * 5); 
                 
                 const earnPercent = (((tp - cur) / cur) * 100).toFixed(2);
                 const duration = "7 - 14 Days";
@@ -582,6 +637,31 @@
 
     function openLongTermModal() { document.getElementById('longTermModal').style.display = 'block'; }
     function closeLongTermModal() { document.getElementById('longTermModal').style.display = 'none'; }
+
+    // --- 📂 BOOKED TRADES SYSTEM RESTORED ---
+    function bookTrade(symbol, entry, tp, sl, trend) {
+        const tradeKey = `trades_${localStorage.getItem('current_user')}`;
+        let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
+        trades.push({ symbol, entry, tp, sl, trend, time: new Date().toLocaleString() });
+        localStorage.setItem(tradeKey, JSON.stringify(trades)); 
+        alert(`${symbol} Trade Booked!`);
+    }
+
+    function openBookedTrades() { document.getElementById('tradesModal').style.display = 'block'; loadTrackedTrades(); }
+    function closeBookedTrades() { document.getElementById('tradesModal').style.display = 'none'; }
+
+    async function loadTrackedTrades() {
+        const trades = JSON.parse(localStorage.getItem(`trades_${localStorage.getItem('current_user')}`) || '[]');
+        const trackedGrid = document.getElementById('trackedGrid'); trackedGrid.innerHTML = "";
+        if (trades.length === 0) { trackedGrid.innerHTML = `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No trades booked.</div>`; return; }
+        for (let t of trades) {
+            trackedGrid.innerHTML += `<div class="card" style="border-left: 3px solid #fcd535;">
+                <div style="font-size:14px; font-weight:bold">${t.symbol}/USDT</div>
+                <div style="font-size:10px; color:#848e9c;">Entry: $${t.entry.toFixed(4)}</div>
+                <div style="font-size:10px; color:var(--accent-color);">${t.trend}</div>
+            </div>`;
+        }
+    }
 </script>
 
 </body>
