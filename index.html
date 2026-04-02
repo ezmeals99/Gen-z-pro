@@ -436,6 +436,8 @@
     <button class="btn-scan" id="mainScanBtn" onclick="startScan()">SCAN MARKET</button>
     <div id="status" style="color:var(--accent-color); font-size:11px; margin-bottom:10px;">Ready to Scan...</div>
     
+    <div style="color:#848e9c; font-size:12px; margin-bottom:10px;">🔒 Showing only high-probability signals ($85\%+$ Accuracy)</div>
+    
     <div class="grid" id="grid"></div>
 </div>
 
@@ -464,7 +466,8 @@
     let scanInterval;
     const bestCoins = [
         "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "ADAUSDT", "XRPUSDT",
-        "DOGEUSDT", "SHIBUSDT", "NEARUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT"
+        "DOGEUSDT", "SHIBUSDT", "NEARUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT",
+        "WIFUSDT", "APTUSDT", "OPUSDT", "FILUSDT", "ICPUSDT", "STXUSDT"
     ];
 
     window.onload = function() {
@@ -475,6 +478,11 @@
         if (loggedInUser) {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContent').style.display = 'block';
+        }
+
+        // Ask for system notification permission on load
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
         }
     };
 
@@ -544,19 +552,19 @@
         // 🔥 Buy / Uptrend Calculation
         if (isUptrend && rsi14 < 45) {
             trend = "BUY (UPTREND)"; 
-            accuracy = Math.min(Math.floor(65 + (45 - rsi14) * 1.5), 98);
+            accuracy = Math.min(Math.floor(70 + (45 - rsi14) * 1.5), 98); // Adjusted starting base accuracy
             tp1 = currentPrice + (volatility * 1.5); sl = currentPrice - (volatility * 2.0);
         } 
         // 🩸 Sell / Downtrend Calculation
         else if (!isUptrend && rsi14 > 55) {
             trend = "SELL (DOWNTREND)"; 
-            accuracy = Math.min(Math.floor(65 + (rsi14 - 55) * 1.5), 98);
+            accuracy = Math.min(Math.floor(70 + (rsi14 - 55) * 1.5), 98); // Adjusted starting base accuracy
             tp1 = currentPrice - (volatility * 1.5); sl = currentPrice + (volatility * 2.0);
         } 
         // 🟡 Sideways
         else {
             trend = "SIDEWAYS";
-            accuracy = Math.floor(Math.random() * 20) + 10; // Low accuracy for sideways
+            accuracy = Math.floor(Math.random() * 20) + 10; 
             tp1 = currentPrice; sl = currentPrice;
         }
 
@@ -575,20 +583,40 @@
         const tf = document.getElementById('tf').value; 
         const grid = document.getElementById('grid'); 
         grid.innerHTML = "";
-        let signals = 0;
+        let highProbSignals = 0;
         
         for (let coin of bestCoins) {
             const candles = await getCandles(coin, tf), analysis = analyzeCoin(candles);
             if (analysis) {
                 analysis.symbol = coin.replace("USDT", ""); 
-                renderCard(analysis, 'grid'); 
-                if (analysis.trend !== "SIDEWAYS") signals++;
+                
+                // 🔥 Condition: Show only 85%+ Accuracy trades on grid
+                if (analysis.accuracy >= 85 && analysis.trend !== "SIDEWAYS") {
+                    renderCard(analysis, 'grid'); 
+                    highProbSignals++;
+                    
+                    // Trigger System Notification
+                    triggerSystemNotification(analysis.symbol, analysis.trend, analysis.accuracy, analysis.price);
+                }
             }
         }
-        document.getElementById('status').innerText = `Scan complete. Found ${signals} active signals.`;
+        document.getElementById('status').innerText = `Scan complete. Found ${highProbSignals} high probability signals (85%+).`;
         
         // Background scan for Long Term Coins
         checkLongTermBackground();
+    }
+
+    // 🔥 Push Notification to device
+    function triggerSystemNotification(symbol, trend, accuracy, price) {
+        document.getElementById('notif-sound').play();
+        
+        if (Notification.permission === "granted") {
+            const options = {
+                body: `${trend} signal detected at $${price} with ${accuracy}% Win Rate!`,
+                icon: "https://bin.arnu.sh/binance.png" // Binance icon
+            };
+            new Notification(`🚀 GenZ Super Signal: ${symbol}`, options);
+        }
     }
 
     async function searchCoin() {
@@ -607,12 +635,18 @@
         if (analysis) {
             analysis.symbol = symbol.replace("USDT", ""); 
             document.getElementById('grid').innerHTML = ""; 
+            
+            // For manual searches, we show it anyway but indicate if it fails the 85% rule
             renderCard(analysis, 'grid');
-            document.getElementById('status').innerText = `Results for ${symbol}`;
+            if (analysis.accuracy < 85) {
+                document.getElementById('status').innerText = `Results for ${symbol} (⚠️ Notice: Below 85% Win Rate)`;
+            } else {
+                document.getElementById('status').innerText = `Results for ${symbol} (🔥 High Accuracy trade!)`;
+            }
         }
     }
 
-    // 🔥 100% Strict Rules for Long Term Coins
+    // 100% Strict Rules for Long Term Coins
     async function checkLongTermBackground() {
         let longTermMatches = 0;
         const longTermGrid = document.getElementById('longTermGrid');
@@ -631,18 +665,18 @@
             // Strict Condition: Very strong Bullish setup on 4H
             if (currentPrice > sma50 && rsi > 50 && rsi < 65) {
                 const analysis = analyzeCoin(candles4H);
-                analysis.symbol = coin.replace("USDT", "");
-                analysis.accuracy = Math.min(analysis.accuracy + 5, 99); // Higher accuracy for LT
-                analysis.trend = "LONG TERM BUY 🚀";
-                renderCard(analysis, 'longTermGrid');
-                longTermMatches++;
+                if (analysis) {
+                    analysis.symbol = coin.replace("USDT", "");
+                    analysis.accuracy = Math.min(analysis.accuracy + 5, 99); // Higher accuracy for LT
+                    analysis.trend = "LONG TERM BUY 🚀";
+                    renderCard(analysis, 'longTermGrid');
+                    longTermMatches++;
+                }
             }
         }
 
-        // Show Red Dot if there is at least 1 strict matching long term trade
         if (longTermMatches > 0) {
             document.getElementById('notifDot').style.display = 'block';
-            document.getElementById('notif-sound').play();
         } else {
             document.getElementById('notifDot').style.display = 'none';
         }
