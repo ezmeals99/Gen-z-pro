@@ -95,6 +95,21 @@
             color: #000;
         }
 
+        /* 🔔 Notification Button Style */
+        .btn-notif {
+            background-color: #2b3139;
+            color: var(--text-color);
+            border: 1px solid #444;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-notif span {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
         .red-dot {
             display: none;
             position: absolute;
@@ -136,7 +151,6 @@
             color: #000;
         }
 
-        /* 👤 Profile / Booked Trades Button */
         .user-icon {
             width: 32px;
             height: 32px;
@@ -370,6 +384,11 @@
                 <button class="btn-long-term" onclick="openLongTermModal()">LONG TERM</button>
                 <div id="notifDot" class="red-dot"></div>
             </div>
+
+            <div class="long-term-wrapper">
+                <button class="btn-notif" onclick="openNotifModal()">🔔 <span>NOTIFS</span></button>
+                <div id="bellDot" class="red-dot"></div>
+            </div>
             
             <div class="search-container">
                 <input type="text" id="sCoin" class="search-input" placeholder="BTC..." onkeypress="if(event.key === 'Enter') searchCoin()">
@@ -408,8 +427,6 @@
     <button class="btn-scan" onclick="startMainScan()">SCAN MARKET</button>
     <div id="status" style="color:var(--accent-color); font-size:11px; margin-bottom:10px;">Ready to Scan High Win Rate Trades...</div>
     
-    <div style="color:#848e9c; font-size:11px; margin-bottom:10px;">🔒 Scanner 1: Showing only 85%+ Win Rates (No Sideways)</div>
-    
     <div class="grid" id="grid"></div>
 </div>
 
@@ -420,6 +437,18 @@
             <span class="close-btn" onclick="closeBookedTrades()">&times;</span>
         </div>
         <div class="grid" id="trackedGrid" style="padding:0;"></div>
+    </div>
+</div>
+
+<div id="notifModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="color:var(--accent-color); margin:0; font-size:16px;">🔔 RECENT 85%+ SIGNALS</h3>
+            <span class="close-btn" onclick="closeNotifModal()">&times;</span>
+        </div>
+        <div class="grid" id="notifGrid" style="padding:0;">
+            <div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No high win rate signals received yet.</div>
+        </div>
     </div>
 </div>
 
@@ -437,6 +466,9 @@
     let mainScanInterval;
     let longTermInterval;
     const filteredCoins = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", "DOGEUSDT", "LINKUSDT", "SHIBUSDT", "SUIUSDT", "NEARUSDT", "FILUSDT"];
+    
+    // Array to hold received high win rate notifications
+    let receivedSignals = [];
 
     window.onload = function() {
         if (!localStorage.getItem('users')) localStorage.setItem('users', JSON.stringify([{u: "alex", p: "123"}]));
@@ -494,7 +526,7 @@
     // ================= SCANNER 1: MAIN MARKET SCAN =================
     async function startMainScan() {
         if (mainScanInterval) clearInterval(mainScanInterval);
-        document.getElementById('status').innerText = "Scanning..."; // Fixed as requested
+        document.getElementById('status').innerText = "Scanning..."; 
         await runMainScan();
         mainScanInterval = setInterval(runMainScan, 60000); 
     }
@@ -526,7 +558,6 @@
                 const diff = trend === "BUY" ? (tp - cur) / cur : (cur - tp) / cur;
                 const earn = ((wallet * lev * diff) - fee).toFixed(2);
 
-                // Colors: Green for BUY, Red for SELL
                 let color = trend === 'BUY' ? 'var(--success-color)' : 'var(--danger-color)';
 
                 grid.innerHTML += `
@@ -542,11 +573,21 @@
                         <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, '${trend}')">📌 BOOK TRADE</button>
                     </div>
                 `;
+                
+                // Add to Notification list & ring the bell
+                addNotification(symbol.replace("USDT", ""), trend, accuracy, cur);
+                
                 document.getElementById('notif-sound').play();
                 if (Notification.permission === "granted") new Notification(`🚀 Signal Found: ${symbol}`, { body: `${trend} signal with ${accuracy.toFixed(0)}% Win Rate!` });
             }
         }
         document.getElementById('status').innerText = `Scan complete. Found ${found} signals (85%+).`;
+    }
+
+    function addNotification(symbol, trend, accuracy, price) {
+        receivedSignals.unshift({ symbol, trend, accuracy, price, time: new Date().toLocaleTimeString() });
+        if (receivedSignals.length > 10) receivedSignals.pop(); // Keep only last 10
+        document.getElementById('bellDot').style.display = "block";
     }
 
     // ================= SCANNER 2: INDIVIDUAL COIN SEARCH =================
@@ -638,7 +679,7 @@
     function openLongTermModal() { document.getElementById('longTermModal').style.display = 'block'; }
     function closeLongTermModal() { document.getElementById('longTermModal').style.display = 'none'; }
 
-    // --- 📂 BOOKED TRADES SYSTEM RESTORED ---
+    // --- 📂 BOOKED TRADES SYSTEM ---
     function bookTrade(symbol, entry, tp, sl, trend) {
         const tradeKey = `trades_${localStorage.getItem('current_user')}`;
         let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
@@ -660,6 +701,34 @@
                 <div style="font-size:10px; color:#848e9c;">Entry: $${t.entry.toFixed(4)}</div>
                 <div style="font-size:10px; color:var(--accent-color);">${t.trend}</div>
             </div>`;
+        }
+    }
+
+    // --- 🔔 NOTIFICATION MODAL SYSTEM ---
+    function openNotifModal() { 
+        document.getElementById('notifModal').style.display = 'block'; 
+        document.getElementById('bellDot').style.display = "none"; // Clear red dot
+        loadNotifications();
+    }
+    function closeNotifModal() { document.getElementById('notifModal').style.display = 'none'; }
+
+    function loadNotifications() {
+        const notifGrid = document.getElementById('notifGrid');
+        notifGrid.innerHTML = "";
+        if (receivedSignals.length === 0) {
+            notifGrid.innerHTML = `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No high win rate signals received yet.</div>`;
+            return;
+        }
+        for (let n of receivedSignals) {
+            let color = n.trend === 'BUY' ? 'var(--success-color)' : 'var(--danger-color)';
+            notifGrid.innerHTML += `
+                <div class="card" style="border-left: 3px solid ${color};">
+                    <div style="float:right; font-size:10px; color:#848e9c;">${n.time}</div>
+                    <div style="font-size:14px; font-weight:bold">${n.symbol}/USDT</div>
+                    <div style="font-size:11px; color:${color}; font-weight:bold;">${n.trend} (Win Rate: ${n.accuracy.toFixed(0)}%)</div>
+                    <div style="font-size:10px; color:#eaecef;">Detected Price: $${n.price.toFixed(4)}</div>
+                </div>
+            `;
         }
     }
 </script>
