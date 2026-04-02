@@ -3,239 +3,420 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Scanner with Alerts</title>
+    <title>GenZ Pro - Multi Scanner</title>
     <style>
-        :root {
-            --bg-color: #0d1117;
-            --container-bg: #161b22;
-            --accent-color: #58a6ff;
-            --text-color: #c9d1d9;
-            --success-color: #238636;
-            --danger-color: #da3637;
-        }
+        body { background: #0b0e11; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; text-align: center; }
+        .header { background: #1e2329; padding: 15px 20px; border-bottom: 4px solid #fcd535; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .nav-area { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+        .long-term-wrapper { position: relative; }
+        
+        button { transition: transform 0.1s ease; outline: none; }
+        button:active { transform: scale(0.95); } 
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-        }
+        .btn-long-term { background: #0ecb81; color: black; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .red-dot { display: none; position: absolute; top: -5px; right: -5px; width: 12px; height: 12px; background: #ff4d4d; border-radius: 50%; border: 2px solid #1e2329; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        
+        .search-input { padding: 10px; border-radius: 8px; border: 1px solid #444; background: #2b3139; color: white; width: 110px; outline: none; font-size: 14px; }
+        .btn-search { background: #fcd535; color: black; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        
+        .controls { margin: 15px auto; padding: 15px; background: #1e2329; border-radius: 12px; display: flex; justify-content: center; gap: 15px; max-width: 95%; border: 1px solid #333; align-items: center; flex-wrap: wrap; }
+        
+        .btn-scan { background: #fcd535; color: black; border: none; padding: 12px 30px; border-radius: 40px; font-weight: bold; cursor: pointer; font-size: 16px; margin: 10px; width: 80%; max-width: 300px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; padding: 15px; }
+        .card { background: #1e2329; padding: 20px; border-radius: 15px; border: 1px solid #333; text-align: left; position: relative; }
+        .targets { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; margin-top: 10px; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color: var(--container-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
+        /* Login Overlay */
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 14, 17, 0.95); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .login-box { background: #1e2329; padding: 30px; border-radius: 15px; border: 2px solid #fcd535; width: 85%; max-width: 320px; }
+        .login-box input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #444; background: #2b3139; color: white; box-sizing: border-box; }
+        
+        .btn-login { background: #fcd535; color: black; border: none; padding: 10px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-create { background: transparent; color: #fcd535; border: 1px solid #fcd535; padding: 10px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        .btn-book { width: 100%; background: #0ecb81; color: black; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 12px; font-size: 14px; }
 
-        h1 {
-            text-align: center;
-            color: var(--accent-color);
+        .user-icon, .bell-icon {
+            width: 38px; height: 38px; background: #2b3139; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; border: 1px solid #444; transition: 0.2s;
         }
+        .user-icon:hover, .bell-icon:hover { border-color: #fcd535; background: #1e2329; }
+        .user-icon svg, .bell-icon svg { fill: #fcd535; width: 18px; height: 18px; }
 
-        .notification-btn {
-            display: block;
-            margin: 10px auto;
-            background-color: var(--accent-color);
-            color: black;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 14, 17, 0.98); z-index: 2000; overflow-y: auto;
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        .modal-content {
+            max-width: 90%; margin: 30px auto; padding: 15px;
+            background: #1e2329; border-radius: 15px; border: 1px solid #333;
         }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #30363d;
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px;
         }
+        .close-btn { color: #848e9c; font-size: 28px; font-weight: bold; cursor: pointer; }
 
-        th {
-            background-color: #21262d;
-            color: var(--accent-color);
-        }
+        .slider { -webkit-appearance: none; width: 100px; height: 6px; background: #444; border-radius: 5px; outline: none; }
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fcd535; cursor: pointer; }
 
-        .buy-signal {
-            background-color: rgba(35, 134, 54, 0.2);
-            color: #3fb950;
-            font-weight: bold;
-        }
-
-        .sell-signal {
-            background-color: rgba(218, 54, 55, 0.2);
-            color: #f85149;
-            font-weight: bold;
-        }
-
-        .status {
-            text-align: center;
-            font-style: italic;
-            color: #8b949e;
-            margin-top: 10px;
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            .header { justify-content: center; text-align: center; }
+            .nav-area { justify-content: center; width: 100%; }
+            .controls { flex-direction: column; gap: 10px; text-align: center; }
+            .slider { width: 150px; }
+            .grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Advanced Crypto Market Scanner</h1>
-        <button id="notif-btn" class="notification-btn">Enable Desktop Notifications</button>
-        
-        <div class="status" id="status-text">Scanner is initializing...</div>
+<audio id="notif-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Coin</th>
-                    <th>Price</th>
-                    <th>RSI (14)</th>
-                    <th>SMA 50</th>
-                    <th>Signal</th>
-                    <th>Suggested TP / SL</th>
-                </tr>
-            </thead>
-            <tbody id="crypto-table-body">
-                </tbody>
-        </table>
+<div id="loginOverlay">
+    <div class="login-box">
+        <h2 id="loginTitle" style="color:#fcd535; margin-top:0; font-size: 22px;">GEN Z LOGIN</h2>
+        <p style="font-size: 11px; color: #848e9c;">Sign in or create a new account</p>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button class="btn-login" onclick="attemptLogin()">LOGIN</button>
+        <button class="btn-create" onclick="attemptCreate()">CREATE ACCOUNT</button>
+        <div id="loginMsg" style="color:#f6465d; font-size:12px; margin-top:10px;"></div>
+    </div>
+</div>
+
+<div id="appContent" style="display: none;">
+    <div class="header">
+        <h2 style="margin:0; font-size: 20px;">GEN Z PRO <span style="color:#fcd535">SCANNER</span></h2>
+        <div class="nav-area">
+            <div class="bell-icon" id="bellIcon" onclick="requestNotifPermission()" title="Enable Notifications" style="display: none;">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,2A7,7 0 0,0 5,9V16L3,18V19H21V18L19,16V9A7,7 0 0,0 12,2M12,22A2,2 0 0,0 14,20H10A2,2 0 0,0 12,22Z"/>
+                </svg>
+            </div>
+            
+            <button style="background:transparent; color:#f6465d; border:1px solid #f6465d; border-radius:5px; padding:8px 12px; cursor:pointer; font-weight:bold; font-size: 13px;" onclick="logout()">LOGOUT</button>
+            
+            <div class="long-term-wrapper">
+                <button class="btn-long-term" onclick="loadLongTerm()">LONG TERM</button>
+                <div id="notifDot" class="red-dot"></div>
+            </div>
+            
+            <input type="text" id="sCoin" class="search-input" placeholder="BTC..." onkeypress="if(event.key === 'Enter') searchCoin()">
+            <button class="btn-search" onclick="searchCoin()">SEARCH</button>
+            
+            <div class="user-icon" onclick="openBookedTrades()" title="My Booked Trades">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+                </svg>
+            </div>
+        </div>
     </div>
 
-    <audio id="notif-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+    <div class="controls">
+        <div>
+            <label style="font-size:11px; color:#848e9c">WALLET (USDT)</label><br>
+            <input type="number" id="wallet" value="100" style="background:#2b3139; color:white; border:1px solid #444; padding:6px; border-radius:5px; width:80px; font-size:14px;">
+        </div>
+        
+        <div id="levArea">
+            <label style="font-size:11px; color:#848e9c">LEV: <span id="levVal" style="color:#fcd535; font-weight:bold;">15x</span></label><br>
+            <input type="range" id="lev" min="10" max="20" value="15" class="slider" oninput="document.getElementById('levVal').innerText = this.value + 'x'">
+        </div>
 
-    <script>
-        // Full List of Coins based on your request (excluding invalid/delisted ones on Binance spot)
-        const bestCoins = [
-            "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "ADAUSDT", "XRPUSDT",
-            "DOGEUSDT", "SHIBUSDT", "NEARUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT",
-            "PEPEUSDT", "TRXUSDT", "UNIUSDT", "ATOMUSDT", "THETAUSDT", "CRVUSDT"
-        ];
+        <div id="tfArea">
+            <label style="font-size:11px; color:#848e9c">TF</label><br>
+            <select id="tf" style="background:#2b3139; color:white; border:1px solid #444; padding:6px; border-radius:5px; font-size:14px;">
+                <option value="15m" selected>15m</option>
+                <option value="30m">30m</option>
+                <option value="1h">1h</option>
+                <option value="4h">4h</option>
+                <option value="1d">1d</option>
+            </select>
+        </div>
+    </div>
 
-        const tableBody = document.getElementById('crypto-table-body');
-        const statusText = document.getElementById('status-text');
-        const notifBtn = document.getElementById('notif-btn');
-        const notifSound = document.getElementById('notif-sound');
+    <button class="btn-scan" id="mainScanBtn" onclick="startScan()">SCAN MARKET</button>
+    <div id="status" style="color:#fcd535; font-size:13px; margin-bottom:10px;">Ready to Scan...</div>
+    
+    <div class="grid" id="grid"></div>
+</div>
 
-        // Notification Permission Handler
-        notifBtn.addEventListener('click', () => {
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                    alert('Notifications enabled successfully!');
-                    notifBtn.style.display = 'none';
-                }
-            });
+<div id="tradesModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="color:#fcd535; margin:0; font-size:18px;">📂 MY BOOKED TRADES</h3>
+            <span class="close-btn" onclick="closeBookedTrades()">&times;</span>
+        </div>
+        <div class="grid" id="trackedGrid" style="padding:0;"></div>
+    </div>
+</div>
+
+<script>
+    let scanInterval;
+    let isLongTermView = false;
+    
+    // 🪙 All requested coins added here
+    const bestCoins = [
+        "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "ADAUSDT", "XRPUSDT",
+        "DOGEUSDT", "SHIBUSDT", "NEARUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT",
+        "PEPEUSDT", "TRXUSDT", "UNIUSDT", "ATOMUSDT", "THETAUSDT", "CRVUSDT"
+    ];
+
+    // --- 🔔 NOTIFICATION SYSTEM ---
+    window.onload = function() {
+        if (!localStorage.getItem('users')) {
+            localStorage.setItem('users', JSON.stringify([{u: "alex", p: "123"}]));
+        }
+        
+        const loggedInUser = localStorage.getItem('current_user');
+        if (loggedInUser) {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('appContent').style.display = 'block';
+        }
+
+        // Show bell icon if permission is not granted yet
+        if (Notification.permission !== 'granted') {
+            document.getElementById('bellIcon').style.display = 'flex';
+        }
+    };
+
+    function requestNotifPermission() {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                alert('Success! You will receive background notifications.');
+                document.getElementById('bellIcon').style.display = 'none';
+            }
         });
+    }
 
-        // Hide button if permission is already granted
+    function triggerAlert(coin, trend, price) {
+        document.getElementById('notif-sound').play();
+
         if (Notification.permission === 'granted') {
-            notifBtn.style.display = 'none';
+            new Notification(`🚀 GenZ Signal: ${coin}`, {
+                body: `${trend} signal detected at $${price}! Check your trades.`,
+                icon: 'https://bin.arnu.sh/binance.png'
+            });
         }
+    }
 
-        // Play alert sound and show desktop notification
-        function triggerAlert(coin, signalType, price) {
-            notifSound.play();
+    // --- 🔐 LOGIN SYSTEM ---
+    function attemptLogin() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
 
-            if (Notification.permission === 'granted') {
-                new Notification(`Crypto Signal: ${coin}`, {
-                    body: `${signalType.toUpperCase()} Signal detected at $${price}!`,
-                    icon: 'https://bin.arnu.sh/binance.png' // Fallback icon
-                });
+        const user = users.find(user => user.u === u && user.p === p);
+        if (user) {
+            localStorage.setItem('current_user', u);
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('appContent').style.display = 'block';
+        } else {
+            document.getElementById('loginMsg').innerText = "Invalid username or password!";
+        }
+    }
+
+    function attemptCreate() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        
+        if (!u || !p) { document.getElementById('loginMsg').innerText = "Fill all fields!"; return; }
+
+        let users = JSON.parse(localStorage.getItem('users') || '[]');
+        if (users.some(user => user.u === u)) { document.getElementById('loginMsg').innerText = "Username exists!"; return; }
+
+        users.push({u: u, p: p});
+        localStorage.setItem('users', JSON.stringify(users));
+        localStorage.setItem('current_user', u);
+        location.reload();
+    }
+
+    function logout() { localStorage.removeItem('current_user'); location.reload(); }
+
+    // --- 📊 TRADING & API LOGIC ---
+    async function getCandles(symbol, interval) {
+        try {
+            const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=100`);
+            const data = await res.json();
+            return data.map(d => ({
+                open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4])
+            }));
+        } catch (e) { console.error(e); return null; }
+    }
+
+    function calculateRSI(closes, period = 14) {
+        let gains = 0, losses = 0;
+        for (let i = 1; i <= period; i++) {
+            let diff = closes[i] - closes[i - 1];
+            if (diff >= 0) gains += diff; else losses -= diff;
+        }
+        let avgGain = gains / period; let avgLoss = losses / period;
+
+        for (let i = period + 1; i < closes.length; i++) {
+            let diff = closes[i] - closes[i - 1];
+            let gain = diff >= 0 ? diff : 0; let loss = diff < 0 ? -diff : 0;
+            avgGain = (avgGain * (period - 1) + gain) / period;
+            avgLoss = (avgLoss * (period - 1) + loss) / period;
+        }
+        let rs = avgGain / avgLoss; return 100 - (100 / (1 + rs));
+    }
+
+    function calculateSMA(closes, period) {
+        const slice = closes.slice(-period);
+        return slice.reduce((a, b) => a + b, 0) / period;
+    }
+
+    function analyzeCoin(candles) {
+        if (!candles || candles.length < 50) return null;
+        const closes = candles.map(c => c.close);
+        const current_price = closes[closes.length - 1];
+        const close_price = closes[closes.length - 2];
+
+        const sma50 = calculateSMA(closes, 50);
+        const is_uptrend = close_price > sma50;
+        const current_rsi = calculateRSI(closes, 14);
+
+        let sumVol = 0;
+        candles.slice(-14).forEach(c => sumVol += (c.high - c.low));
+        const volatility = sumVol / 14;
+
+        let accuracy = 50; let trend = "SIDEWAYS";
+        let entry = current_price, tp1, tp2, tp3, sl;
+
+        // Buy Signal (Over 70% accuracy trigger alert)
+        if (is_uptrend && current_rsi < 45) {
+            trend = "UPTREND";
+            accuracy = Math.min(Math.floor(65 + (45 - current_rsi) * 1.5), 98);
+            tp1 = current_price + (volatility * 1.5); tp2 = current_price + (volatility * 2.5); tp3 = current_price + (volatility * 3.5); sl = current_price - (volatility * 2.0);
+        }
+        // Sell Signal
+        else if (!is_uptrend && current_rsi > 55) {
+            trend = "DOWNTREND";
+            accuracy = Math.min(Math.floor(65 + (current_rsi - 55) * 1.5), 98);
+            tp1 = current_price - (volatility * 1.5); tp2 = current_price - (volatility * 2.5); tp3 = current_price - (volatility * 3.5); sl = current_price + (volatility * 2.0);
+        } else { tp1 = tp2 = tp3 = sl = current_price; accuracy = 40; }
+
+        return { price: current_price, trend: trend, entry: entry, tp1: tp1, tp2: tp2, tp3: tp3, sl: sl, accuracy: accuracy };
+    }
+
+    // --- 🚀 SCANNING ---
+    async function startScan() {
+        isLongTermView = false;
+        document.getElementById('status').innerText = "Live Scanning Market (60s cycle)...";
+        if (scanInterval) clearInterval(scanInterval);
+        await updateData();
+        scanInterval = setInterval(updateData, 60000); // 1 minute cycle
+    }
+
+    async function updateData() {
+        const tf = document.getElementById('tf').value;
+        const grid = document.getElementById('grid'); grid.innerHTML = "";
+        let foundSignals = 0;
+
+        for (let coin of bestCoins) {
+            const candles = await getCandles(coin, tf);
+            const analysis = analyzeCoin(candles);
+            
+            if (analysis && analysis.trend !== "SIDEWAYS" && analysis.accuracy >= 70) {
+                analysis.symbol = coin.replace("USDT", "");
+                renderCard(analysis);
+                foundSignals++;
+                
+                // 🔔 Trigger Background Notification
+                triggerAlert(analysis.symbol, analysis.trend, analysis.price);
             }
         }
+        document.getElementById('status').innerText = `Scan complete. Found ${foundSignals} signals.`;
+    }
 
-        // Fetch Data and Calculate Indicators
-        async function scanMarket() {
-            statusText.innerText = "Scanning Binance Market...";
-            tableBody.innerHTML = ''; // Clear previous
+    async function searchCoin() {
+        const coin = document.getElementById('sCoin').value.trim().toUpperCase();
+        const tf = document.getElementById('tf').value;
+        if (!coin) return;
+        const symbol = coin.endsWith("USDT") ? coin : coin + "USDT";
+        const candles = await getCandles(symbol, tf);
+        const analysis = analyzeCoin(candles);
+        
+        if (!analysis) { document.getElementById('status').innerText = "Coin not found!"; return; }
+        
+        analysis.symbol = symbol.replace("USDT", "");
+        document.getElementById('grid').innerHTML = "";
+        renderCard(analysis);
+    }
 
-            for (const coin of bestCoins) {
-                try {
-                    // Fetch 50 hourly candles for SMA and RSI calculation
-                    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${coin}&interval=1h&limit=50`);
-                    const data = await response.json();
+    // --- 🎨 RENDERING ---
+    function renderCard(c) {
+        const grid = document.getElementById('grid');
+        let wallet = parseFloat(document.getElementById('wallet').value) || 100;
+        const lev = parseInt(document.getElementById('lev').value) || 15;
+        const fee = (wallet * lev * 0.00018) * 2;
+        let color = c.trend === "UPTREND" ? "#0ecb81" : "#f6465d";
 
-                    const closes = data.map(candle => parseFloat(candle[4]));
-                    const currentPrice = closes[closes.length - 1];
+        const calcPnL = (t) => {
+            let diff = c.trend === "UPTREND" ? (t - c.entry) / c.entry : (c.entry - t) / c.entry;
+            return ((wallet * lev * diff) - fee).toFixed(2);
+        };
 
-                    const rsi = calculateRSI(closes, 14);
-                    const sma50 = calculateSMA(closes, 50);
+        grid.innerHTML += `
+            <div class="card" style="border-top: 4px solid ${color}">
+                <div style="float:right; color:#fcd535; font-size:11px;">${c.accuracy}% Acc.</div>
+                <div style="font-size:18px; font-weight:bold">${c.symbol}/USDT</div>
+                <div style="color:${color}; font-weight:bold; font-size:11px">${c.trend}</div>
+                <div style="font-size:24px; font-weight:bold; margin:8px 0;">$${c.price.toFixed(c.symbol.includes('PEPE') ? 8 : 4)}</div>
+                
+                <div class="targets">
+                    <div class="row">TP 1 <span style="color:#0ecb81">$${c.tp1.toFixed(4)} (+$${calcPnL(c.tp1)})</span></div>
+                    <div class="row">TP 2 <span style="color:#0ecb81">$${c.tp2.toFixed(4)} (+$${calcPnL(c.tp2)})</span></div>
+                    <div class="row">TP 3 <span style="color:#0ecb81">$${c.tp3.toFixed(4)} (+$${calcPnL(c.tp3)})</span></div>
+                    <div class="row" style="color:#f6465d; border-top:1px solid #444; padding-top:5px; margin-top:5px;">SL <span>$${c.sl.toFixed(4)} (-$${calcPnL(c.sl)})</span></div>
+                </div>
+                <button class="btn-book" onclick="bookTrade('${c.symbol}', ${c.entry}, ${c.tp1}, ${c.sl}, '${c.trend}')">📌 BOOK TRADE</button>
+            </div>
+        `;
+    }
 
-                    let signal = "Neutral";
-                    let rowClass = "";
-                    let tpSl = "N/A";
+    // --- 📌 BOOK TRADES ---
+    function bookTrade(symbol, entry, tp, sl, trend) {
+        const user = localStorage.getItem('current_user');
+        const tradeKey = `trades_${user}`;
+        let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
+        trades.push({ symbol, entry, tp, sl, trend, status: "ON-GOING", time: new Date().toLocaleString() });
+        localStorage.setItem(tradeKey, JSON.stringify(trades));
+        alert(`${symbol} Booked!`);
+    }
 
-                    // Buy Signal Logic
-                    if (rsi < 30 && currentPrice > sma50) {
-                        signal = "STRONG BUY";
-                        rowClass = "buy-signal";
-                        tpSl = `TP: ${(currentPrice * 1.03).toFixed(4)} / SL: ${(currentPrice * 0.98).toFixed(4)}`;
-                        triggerAlert(coin, "Buy", currentPrice);
-                    } 
-                    // Sell Signal Logic
-                    else if (rsi > 70 && currentPrice < sma50) {
-                        signal = "STRONG SELL";
-                        rowClass = "sell-signal";
-                        tpSl = `TP: ${(currentPrice * 0.97).toFixed(4)} / SL: ${(currentPrice * 1.02).toFixed(4)}`;
-                        triggerAlert(coin, "Sell", currentPrice);
-                    }
+    async function loadTrackedTrades() {
+        const user = localStorage.getItem('current_user');
+        const trades = JSON.parse(localStorage.getItem(`trades_${user}`) || '[]');
+        const trackedGrid = document.getElementById('trackedGrid');
+        trackedGrid.innerHTML = "";
 
-                    // Append to table
-                    const row = `
-                        <tr class="${rowClass}">
-                            <td>${coin}</td>
-                            <td>$${currentPrice.toFixed(coin.includes('PEPE') ? 8 : 4)}</td>
-                            <td>${rsi.toFixed(2)}</td>
-                            <td>$${sma50.toFixed(4)}</td>
-                            <td>${signal}</td>
-                            <td>${tpSl}</td>
-                        </tr>
-                    `;
-                    tableBody.innerHTML += row;
-
-                } catch (error) {
-                    console.error(`Error fetching data for ${coin}:`, error);
-                }
+        for (let t of trades) {
+            let current_price = t.entry;
+            if (t.status === "ON-GOING") {
+                const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${t.symbol}USDT`);
+                const data = await res.json();
+                current_price = parseFloat(data.price);
             }
-            statusText.innerText = `Scan complete. Waiting for the next cycle... (Last updated: ${new Date().toLocaleTimeString()})`;
+            let color = t.status === "TP HIT" ? "#0ecb81" : (t.status === "SL HIT" ? "#f6465d" : "#fcd535");
+
+            trackedGrid.innerHTML += `
+                <div class="card" style="border-left: 4px solid ${color};">
+                    <div style="float:right; color:${color}; font-weight:bold; font-size:11px;">${t.status}</div>
+                    <div style="font-size:16px; font-weight:bold">${t.symbol}/USDT</div>
+                    <div style="font-size:11px; color:#848e9c;">Live: $${current_price.toFixed(4)}</div>
+                </div>
+            `;
         }
+    }
 
-        // Simple SMA Calculation
-        function calculateSMA(data, period) {
-            if (data.length < period) return 0;
-            const sum = data.slice(data.length - period).reduce((a, b) => a + b, 0);
-            return sum / period;
-        }
-
-        // Simple RSI Calculation
-        function calculateRSI(data, period) {
-            if (data.length < period + 1) return 50;
-            let gains = 0, losses = 0;
-
-            for (let i = data.length - period; i < data.length; i++) {
-                const diff = data[i] - data[i - 1];
-                if (diff >= 0) gains += diff;
-                else losses -= diff;
-            }
-
-            const avgGain = gains / period;
-            const avgLoss = losses / period;
-
-            if (avgLoss === 0) return 100;
-            const rs = avgGain / avgLoss;
-            return 100 - (100 / (1 + rs));
-        }
-
-        // Run Scanner every 1 minute
-        scanMarket();
-        setInterval(scanMarket, 60000);
-    </script>
+    function openBookedTrades() { document.getElementById('tradesModal').style.display = 'block'; loadTrackedTrades(); }
+    function closeBookedTrades() { document.getElementById('tradesModal').style.display = 'none'; }
+</script>
 </body>
 </html>
