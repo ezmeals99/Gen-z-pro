@@ -329,7 +329,6 @@
             font-size: 14px;
         }
 
-        /* හරි ක්‍රමයට හැදූ Login බටන්ස් */
         .btn-login-submit {
             background-color: var(--accent-color);
             color: #000;
@@ -469,10 +468,11 @@
 <script>
     let scanInterval;
     let isLongTermView = false;
+    
+    // Default Top Coins to show on manual scan
     const bestCoins = [
         "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "ADAUSDT", "XRPUSDT",
-        "DOGEUSDT", "SHIBUSDT", "NEARUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT",
-        "PEPEUSDT", "TRXUSDT", "UNIUSDT", "ATOMUSDT", "THETAUSDT", "CRVUSDT"
+        "DOGEUSDT", "SHIBUSDT", "NEARUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT"
     ];
 
     window.onload = function() {
@@ -532,7 +532,11 @@
         localStorage.setItem('current_user', u);
         location.reload();
     }
-    function logout() { localStorage.removeItem('current_user'); location.reload(); }
+    
+    function logout() { 
+        localStorage.removeItem('current_user'); 
+        location.reload(); 
+    }
 
     async function getCandles(symbol, interval) {
         try {
@@ -541,6 +545,7 @@
             return data.map(d => ({close: parseFloat(d[4]), high: parseFloat(d[2]), low: parseFloat(d[3])}));
         } catch (e) { return null; }
     }
+
     function calculateRSI(closes, period = 14) {
         let gains = 0, losses = 0;
         for (let i = 1; i <= period; i++) {
@@ -555,6 +560,7 @@
         if (avgLoss === 0) return 100;
         let rs = avgGain / avgLoss; return 100 - (100 / (1 + rs));
     }
+
     function analyzeCoin(candles) {
         if (!candles || candles.length < 50) return null;
         const closes = candles.map(c => c.close), currentPrice = closes[closes.length - 1], previousClose = closes[closes.length - 2];
@@ -577,3 +583,104 @@
     async function startScan() {
         if (scanInterval) clearInterval(scanInterval);
         document.getElementById('status').innerText = "Live Scanning Market (60s cycle)...";
+        await updateData(); 
+        scanInterval = setInterval(updateData, 60000);
+    }
+
+    async function updateData() {
+        const tf = document.getElementById('tf').value; const grid = document.getElementById('grid'); grid.innerHTML = "";
+        let signals = 0;
+        document.getElementById('status').innerText = "Scanning top coins...";
+        for (let coin of bestCoins) {
+            const candles = await getCandles(coin, tf), analysis = analyzeCoin(candles);
+            if (analysis && analysis.trend !== "SIDEWAYS" && analysis.accuracy >= 60) {
+                analysis.symbol = coin.replace("USDT", ""); renderCard(analysis); signals++;
+                triggerAlert(analysis.symbol, analysis.trend, analysis.price);
+            }
+        }
+        document.getElementById('status').innerText = `Scan complete. Found ${signals} signals.`;
+    }
+
+    // 🔥 100% Dynamic Binance Coin Search
+    async function searchCoin() {
+        const coinInput = document.getElementById('sCoin').value.trim().toUpperCase();
+        const tf = document.getElementById('tf').value;
+        if (!coinInput) return; 
+        
+        let symbol = coinInput.endsWith("USDT") ? coinInput : coinInput + "USDT";
+        document.getElementById('status').innerText = `Searching ${symbol} on Binance...`;
+        
+        const candles = await getCandles(symbol, tf);
+        
+        if (!candles) { 
+            document.getElementById('status').innerText = "Coin not found on Binance (Or API limit reached)! Make sure to use correct symbol."; 
+            return; 
+        }
+        
+        const analysis = analyzeCoin(candles);
+        if (!analysis) {
+            document.getElementById('status').innerText = "Not enough data to analyze this coin yet.";
+            return;
+        }
+        
+        analysis.symbol = symbol.replace("USDT", ""); 
+        document.getElementById('grid').innerHTML = ""; 
+        renderCard(analysis);
+        document.getElementById('status').innerText = `Displaying results for ${symbol}`;
+    }
+
+    function renderCard(c) {
+        const grid = document.getElementById('grid'), wallet = parseFloat(document.getElementById('wallet').value) || 100, lev = parseInt(document.getElementById('lev').value) || 15;
+        const fee = (wallet * lev * 0.00018) * 2, color = c.trend === "UPTREND" ? "#0ecb81" : "#f6465d";
+        const calcPnL = (t) => {
+            let diff = c.trend === "UPTREND" ? (t - c.entry) / c.entry : (c.entry - t) / c.entry;
+            return ((wallet * lev * diff) - fee).toFixed(2);
+        };
+        const priceDecimals = c.symbol.includes('PEPE') ? 8 : 4;
+
+        grid.innerHTML += `
+            <div class="card" style="border-top: 3px solid ${color}">
+                <div style="float:right; color:var(--accent-color); font-size:10px;">${c.accuracy}% Acc.</div>
+                <div class="card-symbol">${c.symbol}/USDT</div>
+                <div class="card-trend" style="color:${color};">${c.trend}</div>
+                <div class="card-price">$${c.price.toFixed(priceDecimals)}</div>
+                <div class="targets">
+                    <div class="row">Target (TP 1) <span style="color:#0ecb81">$${c.tp1.toFixed(priceDecimals)} (+$${calcPnL(c.tp1)})</span></div>
+                    <div class="row" style="color:#f6465d; border-top:1px solid #444; padding-top:4px; margin-top:4px;">Stop Loss <span style="color:#f6465d">$${c.sl.toFixed(priceDecimals)} (-$${calcPnL(c.sl)})</span></div>
+                </div>
+                <button class="btn-book" onclick="bookTrade('${c.symbol}', ${c.entry}, ${c.tp1}, ${c.sl}, '${c.trend}')">📌 BOOK TRADE</button>
+            </div>
+        `;
+    }
+
+    function bookTrade(symbol, entry, tp, sl, trend) {
+        const tradeKey = `trades_${localStorage.getItem('current_user')}`;
+        let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
+        trades.push({ symbol, entry, tp, sl, trend, status: "ON-GOING", time: new Date().toLocaleString() });
+        localStorage.setItem(tradeKey, JSON.stringify(trades)); 
+        alert(`${symbol} Booked!`);
+    }
+    
+    function openBookedTrades() { 
+        document.getElementById('tradesModal').style.display = 'block'; 
+        loadTrackedTrades(); 
+    }
+    
+    function closeBookedTrades() { 
+        document.getElementById('tradesModal').style.display = 'none'; 
+    }
+    
+    async function loadTrackedTrades() {
+        const trades = JSON.parse(localStorage.getItem(`trades_${localStorage.getItem('current_user')}`) || '[]');
+        const trackedGrid = document.getElementById('trackedGrid'); trackedGrid.innerHTML = "";
+        if (trades.length === 0) { trackedGrid.innerHTML = `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No trades booked.</div>`; return; }
+        for (let t of trades) {
+            trackedGrid.innerHTML += `<div class="card" style="border-left: 3px solid #fcd535;">
+                <div style="font-size:14px; font-weight:bold">${t.symbol}/USDT</div>
+                <div style="font-size:10px; color:#848e9c;">Entry: $${t.entry.toFixed(4)}</div>
+            </div>`;
+        }
+    }
+</script>
+</body>
+</html>
