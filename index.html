@@ -1,601 +1,241 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>GenZ Pro - Multi Scanner</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Scanner with Alerts</title>
     <style>
-        body { background: #0b0e11; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; text-align: center; }
-        .header { background: #1e2329; padding: 20px 40px; border-bottom: 4px solid #fcd535; display: flex; justify-content: space-between; align-items: center; }
-        .nav-area { display: flex; gap: 15px; align-items: center; }
-        .long-term-wrapper { position: relative; }
-        
-        button { transition: transform 0.1s ease; outline: none; }
-        button:active { transform: scale(0.95); } 
-
-        .btn-long-term { background: #0ecb81; color: black; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .red-dot { display: none; position: absolute; top: -5px; right: -5px; width: 12px; height: 12px; background: #ff4d4d; border-radius: 50%; border: 2px solid #1e2329; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        
-        .search-input { padding: 10px; border-radius: 8px; border: 1px solid #444; background: #2b3139; color: white; width: 140px; outline: none; }
-        .btn-search { background: #fcd535; color: black; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        
-        .controls { margin: 20px auto; padding: 15px; background: #1e2329; border-radius: 12px; display: flex; justify-content: center; gap: 20px; max-width: 900px; border: 1px solid #333; align-items: center;}
-        .glowing-wallet { animation: glow 1.5s infinite alternate; border: 1px solid #fcd535 !important; }
-        @keyframes glow { from { box-shadow: 0 0 5px #fcd535; } to { box-shadow: 0 0 20px #fcd535; } }
-        
-        .btn-scan { background: #fcd535; color: black; border: none; padding: 15px 50px; border-radius: 40px; font-weight: bold; cursor: pointer; font-size: 18px; margin: 15px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; padding: 20px; }
-        .card { background: #1e2329; padding: 25px; border-radius: 20px; border: 1px solid #333; text-align: left; }
-        .targets { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-top: 10px; }
-        .row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
-
-        /* Login Overlay */
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 14, 17, 0.95); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .login-box { background: #1e2329; padding: 40px; border-radius: 15px; border: 2px solid #fcd535; width: 300px; }
-        .login-box input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #444; background: #2b3139; color: white; }
-        
-        .btn-login { background: #fcd535; color: black; border: none; padding: 10px; width: 97%; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-create { background: transparent; color: #fcd535; border: 1px solid #fcd535; padding: 10px; width: 97%; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        
-        .btn-book { width: 100%; background: #0ecb81; color: black; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        .btn-book:hover { background: #0ca66b; }
-
-        .user-icon {
-            width: 40px; height: 40px; background: #2b3139; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; border: 1px solid #444; transition: 0.2s;
+        :root {
+            --bg-color: #0d1117;
+            --container-bg: #161b22;
+            --accent-color: #58a6ff;
+            --text-color: #c9d1d9;
+            --success-color: #238636;
+            --danger-color: #da3637;
         }
-        .user-icon:hover { border-color: #fcd535; background: #1e2329; }
-        .user-icon svg { fill: #fcd535; width: 20px; height: 20px; }
 
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 14, 17, 0.98); z-index: 2000; overflow-y: auto;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
         }
-        .modal-content {
-            max-width: 1000px; margin: 50px auto; padding: 20px;
-            background: #1e2329; border-radius: 20px; border: 1px solid #333;
-        }
-        .modal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;
-        }
-        .close-btn { color: #848e9c; font-size: 30px; font-weight: bold; cursor: pointer; }
-        .close-btn:hover { color: #f6465d; }
 
-        .slider {
-            -webkit-appearance: none;
-            width: 150px;
-            height: 6px;
-            background: #444;
-            border-radius: 5px;
-            outline: none;
-            transition: background 0.3s;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--container-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #fcd535;
+
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+        }
+
+        .notification-btn {
+            display: block;
+            margin: 10px auto;
+            background-color: var(--accent-color);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
-        .slider::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #fcd535;
-            cursor: pointer;
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+        }
+
+        th {
+            background-color: #21262d;
+            color: var(--accent-color);
+        }
+
+        .buy-signal {
+            background-color: rgba(35, 134, 54, 0.2);
+            color: #3fb950;
+            font-weight: bold;
+        }
+
+        .sell-signal {
+            background-color: rgba(218, 54, 55, 0.2);
+            color: #f85149;
+            font-weight: bold;
+        }
+
+        .status {
+            text-align: center;
+            font-style: italic;
+            color: #8b949e;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
-<div id="loginOverlay">
-    <div class="login-box">
-        <h2 id="loginTitle" style="color:#fcd535; margin-top:0;">GEN Z LOGIN</h2>
-        <p style="font-size: 12px; color: #848e9c;">Sign in or create a new account to continue</p>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
+    <div class="container">
+        <h1>Advanced Crypto Market Scanner</h1>
+        <button id="notif-btn" class="notification-btn">Enable Desktop Notifications</button>
         
-        <button id="mainLogBtn" class="btn-login" onclick="attemptLogin()">LOGIN</button>
-        <button id="mainCreateBtn" class="btn-create" onclick="attemptCreate()">CREATE NEW ACCOUNT</button>
-        
-        <div id="loginMsg" style="color:#f6465d; font-size:12px; margin-top:15px;"></div>
-    </div>
-</div>
+        <div class="status" id="status-text">Scanner is initializing...</div>
 
-<div id="appContent" style="display: none;">
-    <div class="header">
-        <h2 style="margin:0">GEN Z PRO <span style="color:#fcd535">SCANNER</span></h2>
-        <div class="nav-area">
-            <button style="background:transparent; color:#f6465d; border:1px solid #f6465d; border-radius:5px; padding:5px 10px; cursor:pointer; font-weight:bold;" onclick="logout()">LOGOUT</button>
-            
-            <div class="long-term-wrapper">
-                <button class="btn-long-term" onclick="loadLongTerm()">LONG TERM</button>
-                <div id="notifDot" class="red-dot"></div>
-            </div>
-            <input type="text" id="sCoin" class="search-input" placeholder="Symbol (BTC...)" onkeypress="if(event.key === 'Enter') searchCoin()">
-            <button class="btn-search" onclick="searchCoin()">SEARCH</button>
-            
-            <div class="user-icon" onclick="openBookedTrades()" title="My Booked Trades">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
-                </svg>
-            </div>
-        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Coin</th>
+                    <th>Price</th>
+                    <th>RSI (14)</th>
+                    <th>SMA 50</th>
+                    <th>Signal</th>
+                    <th>Suggested TP / SL</th>
+                </tr>
+            </thead>
+            <tbody id="crypto-table-body">
+                </tbody>
+        </table>
     </div>
 
-    <div class="controls">
-        <div>
-            <label style="font-size:11px; color:#848e9c">WALLET (USDT)</label><br>
-            <input type="number" id="wallet" value="100" placeholder="Enter amount" style="background:#2b3139; color:white; border:1px solid #444; padding:8px; border-radius:5px; width:100px;">
-        </div>
-        
-        <div id="levArea">
-            <label style="font-size:11px; color:#848e9c">LEVERAGE: <span id="levVal" style="color:#fcd535; font-weight:bold;">15x</span></label><br>
-            <input type="range" id="lev" min="10" max="20" value="15" class="slider" oninput="document.getElementById('levVal').innerText = this.value + 'x'">
-        </div>
+    <audio id="notif-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
-        <div id="tfArea"><label style="font-size:11px; color:#848e9c">TIMEFRAME</label><br>
-            <select id="tf" style="background:#2b3139; color:white; border:1px solid #444; padding:8px; border-radius:5px;">
-                <option value="15m" selected>15m</option>
-                <option value="30m">30m</option>
-                <option value="1h">1h</option>
-                <option value="4h">4h</option>
-                <option value="1d">1d</option>
-            </select>
-        </div>
-    </div>
+    <script>
+        // Full List of Coins based on your request (excluding invalid/delisted ones on Binance spot)
+        const bestCoins = [
+            "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "ADAUSDT", "XRPUSDT",
+            "DOGEUSDT", "SHIBUSDT", "NEARUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT",
+            "PEPEUSDT", "TRXUSDT", "UNIUSDT", "ATOMUSDT", "THETAUSDT", "CRVUSDT"
+        ];
 
-    <button class="btn-scan" id="mainScanBtn" onclick="startScan()">SCAN MARKET</button>
-    <div id="status" style="color:#fcd535; font-size:13px; margin-bottom:10px;">Ready to Scan...</div>
-    
-    <div class="grid" id="grid"></div>
-</div>
+        const tableBody = document.getElementById('crypto-table-body');
+        const statusText = document.getElementById('status-text');
+        const notifBtn = document.getElementById('notif-btn');
+        const notifSound = document.getElementById('notif-sound');
 
-<div id="tradesModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 style="color:#fcd535; margin:0;">📂 MY BOOKED TRADES</h2>
-            <span class="close-btn" onclick="closeBookedTrades()">&times;</span>
-        </div>
-        <div class="grid" id="trackedGrid" style="padding:0;">
-        </div>
-    </div>
-</div>
+        // Notification Permission Handler
+        notifBtn.addEventListener('click', () => {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    alert('Notifications enabled successfully!');
+                    notifBtn.style.display = 'none';
+                }
+            });
+        });
 
-<script>
-    let scanInterval;
-    let isLongTermView = false;
-    const bestCoins = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "ADAUSDT", "XRPUSDT"];
-
-    // --- 🔐 AUTO LOGIN & LOCALSTORAGE SYSTEM ---
-    window.onload = function() {
-        // Initialize default user if not exists
-        if(!localStorage.getItem('users')) {
-            localStorage.setItem('users', JSON.stringify([{u: "alex", p: "123"}]));
-        }
-        
-        const loggedInUser = localStorage.getItem('current_user');
-        if(loggedInUser) {
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('appContent').style.display = 'block';
-        }
-    };
-
-    function attemptLogin() {
-        const u = document.getElementById('username').value;
-        const p = document.getElementById('password').value;
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-
-        const user = users.find(user => user.u === u && user.p === p);
-        if(user) {
-            localStorage.setItem('current_user', u);
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('appContent').style.display = 'block';
-        } else {
-            document.getElementById('loginMsg').innerText = "Invalid username or password!";
-        }
-    }
-
-    function attemptCreate() {
-        const u = document.getElementById('username').value;
-        const p = document.getElementById('password').value;
-        
-        if(!u || !p) {
-            document.getElementById('loginMsg').innerText = "Please fill all fields!";
-            return;
+        // Hide button if permission is already granted
+        if (Notification.permission === 'granted') {
+            notifBtn.style.display = 'none';
         }
 
-        let users = JSON.parse(localStorage.getItem('users') || '[]');
-        if(users.some(user => user.u === u)) {
-            document.getElementById('loginMsg').innerText = "Username already exists!";
-            return;
-        }
+        // Play alert sound and show desktop notification
+        function triggerAlert(coin, signalType, price) {
+            notifSound.play();
 
-        users.push({u: u, p: p});
-        localStorage.setItem('users', JSON.stringify(users));
-        localStorage.setItem('current_user', u);
-        
-        document.getElementById('loginMsg').style.color = "#0ecb81";
-        document.getElementById('loginMsg').innerText = "Account Created! Loading...";
-        
-        setTimeout(() => {
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('appContent').style.display = 'block';
-        }, 1500);
-    }
-
-    function logout() {
-        localStorage.removeItem('current_user');
-        location.reload(); 
-    }
-
-    // --- 📊 BINANCE DATA & TRADING LOGIC ---
-    async function getCandles(symbol, interval) {
-        try {
-            const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=100`);
-            const data = await res.json();
-            return data.map(d => ({
-                open: parseFloat(d[1]),
-                high: parseFloat(d[2]),
-                low: parseFloat(d[3]),
-                close: parseFloat(d[4])
-            }));
-        } catch (e) {
-            console.error("Fetch error", e);
-            return null;
-        }
-    }
-
-    function calculateRSI(closes, period = 14) {
-        let gains = 0, losses = 0;
-        for (let i = 1; i <= period; i++) {
-            let diff = closes[i] - closes[i - 1];
-            if (diff >= 0) gains += diff;
-            else losses -= diff;
-        }
-        let avgGain = gains / period;
-        let avgLoss = losses / period;
-
-        for (let i = period + 1; i < closes.length; i++) {
-            let diff = closes[i] - closes[i - 1];
-            let gain = diff >= 0 ? diff : 0;
-            let loss = diff < 0 ? -diff : 0;
-            avgGain = (avgGain * (period - 1) + gain) / period;
-            avgLoss = (avgLoss * (period - 1) + loss) / period;
-        }
-        let rs = avgGain / avgLoss;
-        return 100 - (100 / (1 + rs));
-    }
-
-    function calculateSMA(closes, period) {
-        const slice = closes.slice(-period);
-        return slice.reduce((a, b) => a + b, 0) / period;
-    }
-
-    function analyzeCoin(candles) {
-        if (!candles || candles.length < 50) return null;
-
-        const closes = candles.map(c => c.close);
-        const current_price = closes[closes.length - 1];
-        const close_price = closes[closes.length - 2];
-
-        const sma50 = calculateSMA(closes, 50);
-        const is_uptrend = close_price > sma50;
-        const current_rsi = calculateRSI(closes, 14);
-
-        // Volatility
-        let sumVol = 0;
-        const last14 = candles.slice(-14);
-        last14.forEach(c => sumVol += (c.high - c.low));
-        const volatility = sumVol / 14;
-
-        let accuracy = 50;
-        let trend = "SIDEWAYS";
-        let entry = current_price, tp1, tp2, tp3, sl;
-
-        // BUY Signal
-        if (is_uptrend && current_rsi < 45) {
-            trend = "UPTREND";
-            let rsi_factor = (45 - current_rsi) * 1.5;
-            let trend_strength = ((close_price - sma50) / sma50) * 100;
-            accuracy = 65 + rsi_factor + trend_strength;
-
-            tp1 = current_price + (volatility * 1.5);
-            tp2 = current_price + (volatility * 2.5);
-            tp3 = current_price + (volatility * 3.5);
-            sl = current_price - (volatility * 2.0);
-        }
-        // SELL Signal
-        else if (!is_uptrend && current_rsi > 55) {
-            trend = "DOWNTREND";
-            let rsi_factor = (current_rsi - 55) * 1.5;
-            let trend_strength = ((sma50 - close_price) / sma50) * 100;
-            accuracy = 65 + rsi_factor + trend_strength;
-
-            tp1 = current_price - (volatility * 1.5);
-            tp2 = current_price - (volatility * 2.5);
-            tp3 = current_price - (volatility * 3.5);
-            sl = current_price + (volatility * 2.0);
-        } else {
-            tp1 = tp2 = tp3 = sl = current_price;
-            accuracy = 40;
-        }
-
-        accuracy = Math.min(Math.floor(accuracy), 98);
-
-        return {
-            price: current_price,
-            trend: trend,
-            entry: entry,
-            tp1: tp1, tp2: tp2, tp3: tp3, sl: sl,
-            accuracy: accuracy,
-            volatility: volatility
-        };
-    }
-
-    // --- 🚀 APP ACTIONS ---
-    async function startScan() {
-        isLongTermView = false;
-        document.getElementById('levArea').style.display = 'block';
-        document.getElementById('tfArea').style.display = 'block';
-        document.getElementById('status').innerText = "Live Scanning Market...";
-        
-        if (scanInterval) clearInterval(scanInterval);
-        await updateData();
-        scanInterval = setInterval(updateData, 10000);
-    }
-
-    async function updateData() {
-        const tf = document.getElementById('tf').value;
-        const grid = document.getElementById('grid');
-        grid.innerHTML = "";
-        
-        let validSignals = [];
-
-        for (let coin of bestCoins) {
-            const candles = await getCandles(coin, tf);
-            const analysis = analyzeCoin(candles);
-            if (analysis && analysis.trend !== "SIDEWAYS" && analysis.accuracy >= 70) {
-                analysis.symbol = coin.replace("USDT", "");
-                validSignals.push(analysis);
-            }
-        }
-
-        if (validSignals.length === 0) {
-            document.getElementById('status').innerText = "No strong signals found. Scanning continues...";
-        } else {
-            document.getElementById('status').innerText = `Live Scanning on ${tf}... Found ${validSignals.length} signals.`;
-            renderShortTerm(validSignals);
-        }
-    }
-
-    async function searchCoin() {
-        const coin = document.getElementById('sCoin').value.trim().toUpperCase();
-        const tf = document.getElementById('tf').value;
-        if (!coin) return;
-
-        if (scanInterval) clearInterval(scanInterval);
-        document.getElementById('status').innerText = `Searching ${coin}...`;
-
-        const symbol = coin.endsWith("USDT") ? coin : coin + "USDT";
-        const candles = await getCandles(symbol, tf);
-        const analysis = analyzeCoin(candles);
-
-        if (!analysis) {
-            document.getElementById('status').innerText = "Coin not found or analysis failed.";
-            return;
-        }
-
-        analysis.symbol = symbol.replace("USDT", "");
-        document.getElementById('grid').innerHTML = "";
-        renderShortTerm([analysis]);
-        document.getElementById('status').innerText = `Result for ${analysis.symbol}`;
-    }
-
-    async function loadLongTerm() {
-        isLongTermView = true;
-        if (scanInterval) clearInterval(scanInterval);
-        document.getElementById('status').innerText = "Scanning Long Term (1W Timeframe)...";
-        document.getElementById('grid').innerHTML = "";
-
-        let longTermSignals = [];
-        // Test with a few coins to avoid rate limits
-        const testList = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "ADAUSDT", "DOTUSDT"];
-
-        for (let coin of testList) {
-            const candles = await getCandles(coin, "1w");
-            if (!candles || candles.length < 50) continue;
-
-            const closes = candles.map(c => c.close);
-            const current_price = closes[closes.length - 1];
-            const sma50 = calculateSMA(closes, 50);
-            const current_rsi = calculateRSI(closes, 14);
-
-            let sumVol = 0;
-            candles.slice(-14).forEach(c => sumVol += (c.high - c.low));
-            const volatility = sumVol / 14;
-
-            if (current_price > sma50 && current_rsi > 30 && current_rsi < 55) {
-                const entry = current_price;
-                const tp_long = entry + (volatility * 4.0);
-                const sl_long = entry - (volatility * 2.0);
-                const profit_pct = ((tp_long - entry) / entry) * 100;
-
-                longTermSignals.push({
-                    symbol: coin.replace("USDT", ""),
-                    price: current_price,
-                    entry: entry,
-                    tp_long: tp_long,
-                    sl_long: sl_long,
-                    accuracy: current_rsi < 45 ? 92 : 85,
-                    profit_percentage: profit_pct.toFixed(1),
-                    estimated_duration: "1-3 Months"
+            if (Notification.permission === 'granted') {
+                new Notification(`Crypto Signal: ${coin}`, {
+                    body: `${signalType.toUpperCase()} Signal detected at $${price}!`,
+                    icon: 'https://bin.arnu.sh/binance.png' // Fallback icon
                 });
             }
         }
 
-        renderLongTerm(longTermSignals);
-        document.getElementById('status').innerText = `Found ${longTermSignals.length} Long Term Opportunities.`;
-    }
+        // Fetch Data and Calculate Indicators
+        async function scanMarket() {
+            statusText.innerText = "Scanning Binance Market...";
+            tableBody.innerHTML = ''; // Clear previous
 
-    // --- 🎨 UI RENDERING ---
-    function renderShortTerm(coins) {
-        const grid = document.getElementById('grid');
-        let wallet = parseFloat(document.getElementById('wallet').value) || 100;
-        const lev = parseInt(document.getElementById('lev').value) || 15;
-        const fee = (wallet * lev * 0.00018) * 2;
+            for (const coin of bestCoins) {
+                try {
+                    // Fetch 50 hourly candles for SMA and RSI calculation
+                    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${coin}&interval=1h&limit=50`);
+                    const data = await response.json();
 
-        coins.forEach(c => {
-            let color = "#fcd535"; 
-            if(c.trend === "UPTREND") color = "#0ecb81";
-            if(c.trend === "DOWNTREND") color = "#f6465d";
-            
-            const calcPnL = (t) => {
-                let diff = c.trend === "UPTREND" ? (t - c.entry) / c.entry : (c.entry - t) / c.entry;
-                return ((wallet * lev * diff) - fee).toFixed(2);
-            };
+                    const closes = data.map(candle => parseFloat(candle[4]));
+                    const currentPrice = closes[closes.length - 1];
 
-            grid.innerHTML += `
-                <div class="card" style="border-top: 4px solid ${color}">
-                    <div style="float:right; color:#fcd535; font-size:12px;">${c.accuracy}% Acc.</div>
-                    <div style="font-size:22px; font-weight:bold">${c.symbol}/USDT</div>
-                    <div style="color:${color}; font-weight:bold; font-size:12px">${c.trend}</div>
-                    <div style="font-size:28px; font-weight:bold; margin:10px 0;">$${c.price.toFixed(4)}</div>
-                    <div style="color:#fcd535; font-size:13px;">ENTRY: $${c.entry.toFixed(4)} | FEE: -$${fee.toFixed(2)}</div>
-                    
-                    <div class="targets">
-                        <div class="row">TP 1 <span style="color:#0ecb81">$${c.tp1.toFixed(4)} (+$${calcPnL(c.tp1)})</span></div>
-                        <div class="row">TP 2 <span style="color:#0ecb81">$${c.tp2.toFixed(4)} (+$${calcPnL(c.tp2)})</span></div>
-                        <div class="row">TP 3 <span style="color:#0ecb81">$${c.tp3.toFixed(4)} (+$${calcPnL(c.tp3)})</span></div>
-                        <div class="row" style="color:#f6465d; border-top:1px solid #444; padding-top:8px; margin-top:5px;">STOP LOSS <span>$${c.sl.toFixed(4)} (-$${calcPnL(c.sl)})</span></div>
-                    </div>
-                    <button class="btn-book" onclick="bookTrade('${c.symbol}', ${c.entry}, ${c.tp1}, ${c.sl}, '${c.trend}')">📌 BOOK TRADE</button>
-                </div>
-            `;
-        });
-    }
+                    const rsi = calculateRSI(closes, 14);
+                    const sma50 = calculateSMA(closes, 50);
 
-    function renderLongTerm(coins) {
-        const grid = document.getElementById('grid');
-        let wallet = parseFloat(document.getElementById('wallet').value) || 100;
-        
-        coins.forEach(c => {
-            const estimatedProfit = (wallet * (c.profit_percentage / 100)).toFixed(2);
-            
-            grid.innerHTML += `
-                <div class="card" style="border: 2px solid #0ecb81; background: #0b1c15;">
-                    <div style="float:right; background:#0ecb81; color:black; padding:2px 8px; border-radius:5px; font-size:12px; font-weight:bold;">${c.accuracy}% ACCURACY</div>
-                    <div style="font-size:24px; font-weight:bold; color:#0ecb81;">${c.symbol} / USDT</div>
-                    <div style="font-size:11px; color:#848e9c; margin-bottom:10px;">LONG TERM HOLD</div>
-                    <div style="font-size:32px; font-weight:bold; margin-bottom:15px;">$${c.price.toFixed(4)}</div>
-                    <div class="targets" style="border-left: 4px solid #0ecb81;">
-                        <div class="row">ENTRY PRICE <span>$${c.entry.toFixed(4)}</span></div>
-                        <div class="row" style="color:#0ecb81; font-weight:bold;">TARGET (TP) <span>$${c.tp_long.toFixed(4)}</span></div>
-                        <div class="row" style="color:#f6465d;">SAFETY STOP <span>$${c.sl_long.toFixed(4)}</span></div>
-                    </div>
-                    <div style="background: rgba(252, 213, 53, 0.1); padding: 10px; border-radius: 8px; margin-top: 15px; text-align: center;">
-                        <div style="color: #fcd535; font-weight: bold; font-size: 16px;">ESTIMATED PROFIT: +$${estimatedProfit} (${c.profit_percentage}%)</div>
-                        <div style="color: #848e9c; font-size: 12px; margin-top: 5px;">Estimated Duration: ${c.estimated_duration}</div>
-                    </div>
-                    <button class="btn-book" style="background:#fcd535" onclick="bookTrade('${c.symbol}', ${c.entry}, ${c.tp_long}, ${c.sl_long}, 'UPTREND')">📌 BOOK TRADE</button>
-                </div>
-            `;
-        });
-    }
+                    let signal = "Neutral";
+                    let rowClass = "";
+                    let tpSl = "N/A";
 
-    // --- 📌 BOOKED TRADES SYSTEM (LocalStorage) ---
-    function bookTrade(symbol, entry, tp, sl, trend) {
-        const user = localStorage.getItem('current_user');
-        const tradeKey = `trades_${user}`;
-        let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
+                    // Buy Signal Logic
+                    if (rsi < 30 && currentPrice > sma50) {
+                        signal = "STRONG BUY";
+                        rowClass = "buy-signal";
+                        tpSl = `TP: ${(currentPrice * 1.03).toFixed(4)} / SL: ${(currentPrice * 0.98).toFixed(4)}`;
+                        triggerAlert(coin, "Buy", currentPrice);
+                    } 
+                    // Sell Signal Logic
+                    else if (rsi > 70 && currentPrice < sma50) {
+                        signal = "STRONG SELL";
+                        rowClass = "sell-signal";
+                        tpSl = `TP: ${(currentPrice * 0.97).toFixed(4)} / SL: ${(currentPrice * 1.02).toFixed(4)}`;
+                        triggerAlert(coin, "Sell", currentPrice);
+                    }
 
-        trades.push({
-            symbol: symbol,
-            entry: entry,
-            tp: tp,
-            sl: sl,
-            trend: trend,
-            status: "ON-GOING",
-            time: new Date().toLocaleString()
-        });
+                    // Append to table
+                    const row = `
+                        <tr class="${rowClass}">
+                            <td>${coin}</td>
+                            <td>$${currentPrice.toFixed(coin.includes('PEPE') ? 8 : 4)}</td>
+                            <td>${rsi.toFixed(2)}</td>
+                            <td>$${sma50.toFixed(4)}</td>
+                            <td>${signal}</td>
+                            <td>${tpSl}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
 
-        localStorage.setItem(tradeKey, JSON.stringify(trades));
-        alert(`Trade for ${symbol} booked successfully!`);
-    }
-
-    async function loadTrackedTrades() {
-        const user = localStorage.getItem('current_user');
-        const tradeKey = `trades_${user}`;
-        let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
-        const trackedGrid = document.getElementById('trackedGrid');
-        trackedGrid.innerHTML = "";
-
-        if(trades.length === 0) {
-            trackedGrid.innerHTML = `<div style="color:#848e9c; text-align:center; grid-column:1/-1; margin-top:20px;">No trades booked yet.</div>`;
-            return;
-        }
-
-        for (let t of trades) {
-            let current_price = t.entry;
-            
-            if(t.status === "ON-GOING") {
-                const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${t.symbol}USDT`);
-                const data = await res.json();
-                current_price = parseFloat(data.price);
-
-                // Check Hit Conditions
-                if (t.trend === "UPTREND") {
-                    if (current_price >= t.tp) t.status = "TP HIT";
-                    else if (current_price <= t.sl) t.status = "SL HIT";
-                } else if (t.trend === "DOWNTREND") {
-                    if (current_price <= t.tp) t.status = "TP HIT";
-                    else if (current_price >= t.sl) t.status = "SL HIT";
+                } catch (error) {
+                    console.error(`Error fetching data for ${coin}:`, error);
                 }
             }
-
-            let statusColor = "#fcd535";
-            if(t.status === "TP HIT") statusColor = "#0ecb81";
-            if(t.status === "SL HIT") statusColor = "#f6465d";
-
-            trackedGrid.innerHTML += `
-                <div class="card" style="border-left: 4px solid ${statusColor}; background: #12161c;">
-                    <div style="float:right; color:${statusColor}; font-weight:bold; font-size:12px;">${t.status}</div>
-                    <div style="font-size:18px; font-weight:bold">${t.symbol}/USDT</div>
-                    <div style="font-size:11px; color:#848e9c;">Booked: ${t.time}</div>
-                    
-                    <div class="targets" style="font-size:13px;">
-                        <div class="row">Entry: <span>$${t.entry.toFixed(4)}</span></div>
-                        <div class="row" style="color:#0ecb81;">Target (TP): <span>$${t.tp.toFixed(4)}</span></div>
-                        <div class="row" style="color:#f6465d;">Stop Loss: <span>$${t.sl.toFixed(4)}</span></div>
-                        <div class="row" style="border-top: 1px solid #444; padding-top:5px; margin-top:5px;">Live Price: <span>$${current_price.toFixed(4)}</span></div>
-                    </div>
-                </div>
-            `;
+            statusText.innerText = `Scan complete. Waiting for the next cycle... (Last updated: ${new Date().toLocaleTimeString()})`;
         }
-        
-        // Save updated status
-        localStorage.setItem(tradeKey, JSON.stringify(trades));
-    }
 
-    function openBookedTrades() {
-        document.getElementById('tradesModal').style.display = 'block';
-        loadTrackedTrades(); 
-    }
-
-    function closeBookedTrades() {
-        document.getElementById('tradesModal').style.display = 'none';
-    }
-
-    window.onclick = function(event) {
-        const modal = document.getElementById('tradesModal');
-        if (event.target == modal) {
-            modal.style.display = "none";
+        // Simple SMA Calculation
+        function calculateSMA(data, period) {
+            if (data.length < period) return 0;
+            const sum = data.slice(data.length - period).reduce((a, b) => a + b, 0);
+            return sum / period;
         }
-    }
-</script>
+
+        // Simple RSI Calculation
+        function calculateRSI(data, period) {
+            if (data.length < period + 1) return 50;
+            let gains = 0, losses = 0;
+
+            for (let i = data.length - period; i < data.length; i++) {
+                const diff = data[i] - data[i - 1];
+                if (diff >= 0) gains += diff;
+                else losses -= diff;
+            }
+
+            const avgGain = gains / period;
+            const avgLoss = losses / period;
+
+            if (avgLoss === 0) return 100;
+            const rs = avgGain / avgLoss;
+            return 100 - (100 / (1 + rs));
+        }
+
+        // Run Scanner every 1 minute
+        scanMarket();
+        setInterval(scanMarket, 60000);
+    </script>
 </body>
 </html>
