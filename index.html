@@ -95,7 +95,6 @@
             color: #000;
         }
 
-        /* 🔔 Notif Button Style */
         .btn-notif {
             background-color: #2b3139;
             color: var(--text-color);
@@ -468,7 +467,15 @@
     let mainScanInterval;
     let longTermInterval;
     let backgroundScannerInterval;
-    const filteredCoins = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", "DOGEUSDT", "LINKUSDT", "SHIBUSDT", "SUIUSDT", "NEARUSDT", "FILUSDT"];
+    
+    // 🚀 Extended coin list to 35 coins including NIL (Nillion)
+    const filteredCoins = [
+        "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", 
+        "DOGEUSDT", "LINKUSDT", "SHIBUSDT", "SUIUSDT", "NEARUSDT", "FILUSDT", "NILUSDT", 
+        "MATICUSDT", "DOTUSDT", "LTCUSDT", "UNIUSDT", "OPUSDT", "ARBUSDT", "APTUSDT", 
+        "STXUSDT", "RNDRUSDT", "FETUSDT", "INJUSDT", "TIAUSDT", "GALAUSDT", "PEPEUSDT", 
+        "WLDUSDT", "ORDIUSDT", "SEIUSDT", "ARKMUSDT", "BCHUSDT", "TRXUSDT", "AAVEUSDT"
+    ];
     
     let receivedSignals = [];
 
@@ -478,7 +485,7 @@
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContent').style.display = 'block';
             startScanner3Background(); 
-            startAppBackgroundScanner(); // Starts continuous background scanning
+            startAppBackgroundScanner(); 
         }
         if (Notification.permission !== "granted") Notification.requestPermission();
     };
@@ -529,20 +536,19 @@
 
     // ================= SCANNER 1: MAIN MARKET SCAN =================
     async function startMainScan() {
-        document.getElementById('status').innerText = "Scanning..."; 
+        document.getElementById('status').innerText = "Scanning 35 Coins..."; 
         await runMainScan();
     }
 
-    // This runs continuously every 1 minute if user is logged in
     function startAppBackgroundScanner() {
-        runMainScan(); // Run immediately
-        backgroundScannerInterval = setInterval(runMainScan, 60000); // Check every minute
+        runMainScan(); 
+        backgroundScannerInterval = setInterval(runMainScan, 60000); 
     }
 
     async function runMainScan() {
         const tf = document.getElementById('tf').value, grid = document.getElementById('grid'), wallet = parseFloat(document.getElementById('wallet').value), lev = parseInt(document.getElementById('lev').value);
         let found = 0;
-        let tempGridHTML = ""; // Hold cards to update UI at once
+        let tempGridHTML = ""; 
 
         for (let symbol of filteredCoins) {
             const candles = await getCandles(symbol, tf);
@@ -573,16 +579,15 @@
                         <div style="float:right; color:var(--accent-color); font-size:11px;">${accuracy.toFixed(0)}% Win</div>
                         <div class="card-symbol">${symbol.replace("USDT", "")}/USDT</div>
                         <div style="font-size:12px; font-weight:bold; color:${color}">${trend}</div>
-                        <div class="card-price">$${cur.toFixed(symbol.includes('SHIB') ? 6 : 4)}</div>
+                        <div class="card-price">$${cur.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</div>
                         <div class="targets">
                             <div class="row">Potential Earn <span style="color:#0ecb81">+$${earn}</span></div>
-                            <div class="row">Target Price <span>$${tp.toFixed(symbol.includes('SHIB') ? 6 : 4)}</span></div>
+                            <div class="row">Target Price <span>$${tp.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</span></div>
                         </div>
                         <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, '${trend}')">📌 BOOK TRADE</button>
                     </div>
                 `;
                 
-                // Add to history list if not already there recently
                 if(!receivedSignals.some(s => s.symbol === symbol.replace("USDT", "") && s.trend === trend)){
                     addNotification(symbol.replace("USDT", ""), trend, accuracy, cur);
                     document.getElementById('notif-sound').play();
@@ -594,30 +599,26 @@
             }
         }
         
-        // If high signals found, show them automatically in the normal trade area!
-        if (tempGridHTML !== "") {
-            grid.innerHTML = tempGridHTML;
-        } else {
-            grid.innerHTML = `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No high win rate signals detected at this moment.</div>`;
-        }
+        if (tempGridHTML !== "") { grid.innerHTML = tempGridHTML; } 
+        else { grid.innerHTML = `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No high win rate signals detected at this moment.</div>`; }
         
-        document.getElementById('status').innerText = `Scan complete. Found ${found} auto-signals (85%+).`;
+        document.getElementById('status').innerText = `Scan complete. Found ${found} signals.`;
     }
 
     function addNotification(symbol, trend, accuracy, price) {
         receivedSignals.unshift({ symbol, trend, accuracy, price, time: new Date().toLocaleTimeString() });
-        if (receivedSignals.length > 20) receivedSignals.pop(); // Keep last 20 history
-        document.getElementById('bellDot').style.display = "block"; // Turn on red dot
+        if (receivedSignals.length > 20) receivedSignals.pop(); 
+        document.getElementById('bellDot').style.display = "block"; 
     }
 
-    // ================= SCANNER 2: INDIVIDUAL COIN SEARCH =================
+    // ================= SCANNER 2: COIN SEARCH WITH TP/SL & BOOKING =================
     async function searchCoin() {
         const coinInput = document.getElementById('sCoin').value.trim().toUpperCase();
         const tf = document.getElementById('tf').value, grid = document.getElementById('grid');
         if (!coinInput) return;
         
         let symbol = coinInput.endsWith("USDT") ? coinInput : coinInput + "USDT";
-        document.getElementById('status').innerText = `Searching...`;
+        document.getElementById('status').innerText = `Searching ${symbol}...`;
         const candles = await getCandles(symbol, tf);
 
         if (!candles) { document.getElementById('status').innerText = "Coin not found on Binance!"; return; }
@@ -626,20 +627,33 @@
         const sum50 = closes.slice(-50).reduce((a,b)=>a+b, 0), sma50 = sum50 / 50;
         const rsi = calculateRSI(closes, 14);
 
-        let trend = "SIDEWAYS", accuracy = Math.floor(Math.random() * 20) + 40; 
+        let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
+
+        let trend = "SIDEWAYS", accuracy = 50; 
         let color = "var(--accent-color)"; 
         
-        if (cur > sma50 && rsi < 40) { trend = "BUY / UP"; accuracy = Math.min(70 + (40 - rsi) * 1.5, 98); color = "var(--success-color)"; } 
-        else if (cur > sma50) { trend = "UP"; color = "var(--success-color)"; }
-        else if (cur < sma50 && rsi > 60) { trend = "SELL / DOWN"; accuracy = Math.min(70 + (rsi - 60) * 1.5, 98); color = "var(--danger-color)"; } 
-        else if (cur < sma50) { trend = "DOWN"; color = "var(--danger-color)"; }
+        if (cur > sma50 && rsi < 40) { trend = "BUY"; accuracy = Math.min(70 + (40 - rsi) * 1.5, 98); color = "var(--success-color)"; } 
+        else if (cur > sma50) { trend = "BUY"; color = "var(--success-color)"; }
+        else if (cur < sma50 && rsi > 60) { trend = "SELL"; accuracy = Math.min(70 + (rsi - 60) * 1.5, 98); color = "var(--danger-color)"; } 
+        else if (cur < sma50) { trend = "SELL"; color = "var(--danger-color)"; }
+
+        // Automatically create TP and SL for the searched coin
+        const tp = trend === "BUY" ? cur + (volatility * 1.5) : cur - (volatility * 1.5);
+        const sl = trend === "BUY" ? cur - (volatility * 1.5) : cur + (volatility * 1.5);
 
         grid.innerHTML = `
             <div class="card" style="border-top: 3px solid ${color}">
-                <div style="float:right; color:var(--accent-color); font-size:11px;">${accuracy.toFixed(0)}% Win</div>
+                <div style="float:right; color:var(--accent-color); font-size:11px;">Analyzed</div>
                 <div class="card-symbol">${symbol.replace("USDT", "")}/USDT</div>
                 <div style="font-size:14px; font-weight:bold; color:${color}">Status: ${trend}</div>
-                <div class="card-price">$${cur.toFixed(symbol.includes('SHIB') ? 6 : 4)}</div>
+                <div class="card-price">$${cur.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</div>
+                
+                <div class="targets">
+                    <div class="row">Target Price (TP) <span style="color:var(--success-color)">$${tp.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</span></div>
+                    <div class="row">Stop Loss (SL) <span style="color:var(--danger-color)">$${sl.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</span></div>
+                </div>
+                
+                <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, '${trend}')">📌 BOOK TRADE</button>
             </div>
         `;
         document.getElementById('status').innerText = `Search complete.`;
@@ -668,32 +682,29 @@
                 found++;
                 let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
                 const tp = cur + (volatility * 5); 
+                const sl = cur - (volatility * 3);
                 
                 const earnPercent = (((tp - cur) / cur) * 100).toFixed(2);
-                const duration = "7 - 14 Days";
 
                 grid.innerHTML += `
                     <div class="card" style="border-top: 3px solid var(--success-color)">
-                        <div style="float:right; color:var(--accent-color); font-size:11px;">90%+ Accuracy</div>
+                        <div style="float:right; color:var(--accent-color); font-size:11px;">90%+ Win</div>
                         <div class="card-symbol">${symbol.replace("USDT", "")}/USDT</div>
                         <div style="font-size:12px; font-weight:bold; color:var(--success-color);">LONG TERM BUY</div>
                         <div class="card-price">$${cur.toFixed(symbol.includes('SHIB') ? 6 : 4)}</div>
                         <div class="targets">
-                            <div class="row">Estimated Profit <span style="color:#0ecb81">+${earnPercent}%</span></div>
-                            <div class="row">Time Period <span style="color:var(--accent-color);">${duration}</span></div>
+                            <div class="row">Est. Profit <span style="color:#0ecb81">+${earnPercent}%</span></div>
+                            <div class="row">Target TP <span>$${tp.toFixed(symbol.includes('SHIB') ? 6 : 4)}</span></div>
                         </div>
+                        <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, 'LONG BUY')">📌 BOOK LONG TRADE</button>
                     </div>
                 `;
             }
         }
 
         const dot = document.getElementById('notifDot');
-        if (found > 0) {
-            dot.style.display = "block";
-            document.getElementById('notif-sound').play();
-        } else {
-            dot.style.display = "none";
-        }
+        if (found > 0) { dot.style.display = "block"; } 
+        else { dot.style.display = "none"; }
     }
 
     function openLongTermModal() { document.getElementById('longTermModal').style.display = 'block'; }
@@ -705,7 +716,7 @@
         let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
         trades.push({ symbol, entry, tp, sl, trend, time: new Date().toLocaleString() });
         localStorage.setItem(tradeKey, JSON.stringify(trades)); 
-        alert(`${symbol} Trade Booked!`);
+        alert(`✅ ${symbol} Trade Booked Successfully!`);
     }
 
     function openBookedTrades() { document.getElementById('tradesModal').style.display = 'block'; loadTrackedTrades(); }
@@ -716,11 +727,15 @@
         const trackedGrid = document.getElementById('trackedGrid'); trackedGrid.innerHTML = "";
         if (trades.length === 0) { trackedGrid.innerHTML = `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No trades booked.</div>`; return; }
         for (let t of trades) {
-            trackedGrid.innerHTML += `<div class="card" style="border-left: 3px solid #fcd535;">
-                <div style="font-size:14px; font-weight:bold">${t.symbol}/USDT</div>
-                <div style="font-size:10px; color:#848e9c;">Entry: $${t.entry.toFixed(4)}</div>
-                <div style="font-size:10px; color:var(--accent-color);">${t.trend}</div>
-            </div>`;
+            let color = (t.trend.includes('BUY')) ? 'var(--success-color)' : 'var(--danger-color)';
+            trackedGrid.innerHTML += `
+                <div class="card" style="border-left: 3px solid ${color};">
+                    <div style="font-size:14px; font-weight:bold">${t.symbol}/USDT</div>
+                    <div style="font-size:11px; color:${color}; font-weight:bold;">${t.trend}</div>
+                    <div style="font-size:11px;">Entry: $${t.entry.toFixed(4)}</div>
+                    <div style="font-size:10px; color:#848e9c;">TP: $${t.tp.toFixed(4)} | SL: $${t.sl.toFixed(4)}</div>
+                    <div style="font-size:9px; color:#555; margin-top:5px;">${t.time}</div>
+                </div>`;
         }
     }
 
