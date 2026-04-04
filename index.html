@@ -499,7 +499,7 @@
     </div>
 
     <button class="btn-scan" onclick="startMainScan()">SCAN MARKET</button>
-    <div id="status" style="color:var(--accent-color); font-size:11px; margin-bottom:10px;">Ready to Scan High Win Rate Trades...</div>
+    <div id="status" style="color:var(--accent-color); font-size:11px; margin-bottom:10px;">Ready to Scan High Probability Trades...</div>
     
     <div class="grid" id="grid">
         <div style="color:#848e9c; font-size:12px; grid-column:1/-1;">Press Scan or Wait for Auto-Signals...</div>
@@ -507,7 +507,7 @@
 </div>
 
 <div id="tradesModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 style="color:var(--accent-color); margin:0; font-size:16px;">📂 MY BOOKED TRADES</h3><span class="close-btn" onclick="closeBookedTrades()">&times;</span></div><div class="grid" id="trackedGrid" style="padding:0;"></div></div></div>
-<div id="notifModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 style="color:var(--accent-color); margin:0; font-size:16px;">🔔 RECENT 85%+ SIGNALS</h3><span class="close-btn" onclick="closeNotifModal()">&times;</span></div><div class="grid" id="notifGrid" style="padding:0;"><div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No high win rate signals received yet.</div></div></div></div>
+<div id="notifModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 style="color:var(--accent-color); margin:0; font-size:16px;">🔔 RECENT HIGH PROBABILITY SIGNALS</h3><span class="close-btn" onclick="closeNotifModal()">&times;</span></div><div class="grid" id="notifGrid" style="padding:0;"><div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No high win rate signals received yet.</div></div></div></div>
 <div id="longTermModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 style="color:var(--success-color); margin:0; font-size:16px;">🚀 LONG TERM COINS</h3><span class="close-btn" onclick="closeLongTermModal()">&times;</span></div><div class="grid" id="longTermGrid" style="padding:0;"></div></div></div>
 
 <script>
@@ -598,11 +598,12 @@
             const sum50 = closes.slice(-50).reduce((a,b)=>a+b, 0), sma50 = sum50 / 50;
             const rsi = calculateRSI(closes, 14);
 
-            let trend = "", accuracy = 0;
-            if (cur > sma50 && rsi < 40) { trend = "BUY"; accuracy = Math.min(80 + (40 - rsi) * 2, 99); }
-            else if (cur < sma50 && rsi > 60) { trend = "SELL"; accuracy = Math.min(80 + (rsi - 60) * 2, 99); }
+            let trend = "", isMatch = false;
+            if (cur > sma50 && rsi < 40) { trend = "BUY"; isMatch = true; }
+            else if (cur < sma50 && rsi > 60) { trend = "SELL"; isMatch = true; }
 
-            if (accuracy >= 85) {
+            // Dummy % calculations okkoma remove kala
+            if (isMatch) {
                 const fee = (wallet * lev * 0.00018) * 2;
                 let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
                 const tp = trend === "BUY" ? cur + (volatility * 1.5) : cur - (volatility * 1.5);
@@ -613,7 +614,7 @@
                 let color = trend === 'BUY' ? 'var(--success-color)' : 'var(--danger-color)';
                 tempGridHTML += `
                     <div class="card" style="border-top: 3px solid ${color}">
-                        <div style="float:right; color:var(--accent-color); font-size:11px;">${accuracy.toFixed(0)}% Win</div>
+                        <div style="float:right; color:var(--accent-color); font-size:11px;">MATCHED</div>
                         <div class="card-symbol">${symbol.replace("USDT", "")}/USDT</div>
                         <div style="font-size:12px; font-weight:bold; color:${color}">${trend}</div>
                         <div class="card-price">$${cur.toFixed(4)}</div>
@@ -629,7 +630,7 @@
         updateTrackedTrades();
     }
 
-    // --- 🔍 SCANNER 2: SEARCH COIN ---
+    // --- 🔍 SCANNER 2: SEARCH COIN (NO DUMMY PERCENTAGES) ---
     async function searchCoin() {
         const coinInput = document.getElementById('sCoin').value.trim().toUpperCase();
         const tf = document.getElementById('tf').value, grid = document.getElementById('grid');
@@ -646,34 +647,34 @@
         const rsi = calculateRSI(closes, 14);
         let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
 
-        let trend = "SIDEWAYS", color = "var(--accent-color)", accuracy = 50; 
+        let trend = "SIDEWAYS", color = "var(--accent-color)"; 
         if (cur > sma50) { 
             trend = "UPTREND (BUY)"; color = "var(--success-color)"; 
-            accuracy = rsi < 40 ? Math.min(80 + (40 - rsi) * 2, 99) : 70;
         } else if (cur < sma50) { 
             trend = "DOWNTREND (SELL)"; color = "var(--danger-color)"; 
-            accuracy = rsi > 60 ? Math.min(80 + (rsi - 60) * 2, 99) : 70;
         }
 
         const tp = trend.includes("BUY") ? cur + (volatility * 1.5) : cur - (volatility * 1.5);
         const sl = trend.includes("BUY") ? cur - (volatility * 1.5) : cur + (volatility * 1.5);
 
+        // Grid eke display una dummy accuracy percentage eka drop kala
         grid.innerHTML = `
-            <div class="card" style="border-top: 3px solid color">
-                <div style="float:right; color:var(--accent-color); font-size:11px;">${accuracy.toFixed(0)}% Accuracy</div>
+            <div class="card" style="border-top: 3px solid ${color}">
+                <div style="float:right; color:var(--accent-color); font-size:11px;">REAL-TIME</div>
                 <div class="card-symbol">${symbol.replace("USDT", "")}/USDT</div>
                 <div style="font-size:14px; font-weight:bold; color:${color}">${trend}</div>
                 <div class="card-price">$${cur.toFixed(4)}</div>
                 <div class="targets">
                     <div class="row">Target Price (TP) <span style="color:var(--success-color)">$${tp.toFixed(4)}</span></div>
                     <div class="row">Stop Loss (SL) <span style="color:var(--danger-color)">$${sl.toFixed(4)}</span></div>
+                    <div class="row">RSI 14 <span>${rsi.toFixed(2)}</span></div>
                 </div>
                 <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, '${trend}')">📌 BOOK TRADE</button>
             </div>`;
         document.getElementById('status').innerText = `Search complete.`;
     }
 
-    // --- 🛡️ SCANNER 3: LONG TERM ---
+    // --- 🛡️ SCANNER 3: LONG TERM (NO DUMMY ACCURACY) ---
     function startScanner3Background() { runLongTermBackground(); setInterval(runLongTermBackground, 180000); }
 
     async function runLongTermBackground() {
@@ -694,15 +695,15 @@
                 const tp = cur + (volatility * 5); 
                 const sl = cur - (volatility * 3);
                 const earnPercent = (((tp - cur) / cur) * 100).toFixed(2);
-                const dummyWinRate = Math.min(85 + (rsi - 50) * 0.8, 98).toFixed(0);
                 
                 let days = "2-4";
                 if (volatility / cur < 0.01) days = "5-7";
                 else if (volatility / cur > 0.03) days = "1-2";
 
+                // Card eken dummy percentage calculations okkoma arapuwa
                 grid.innerHTML += `
                     <div class="card" style="border-top: 3px solid var(--success-color)">
-                        <div style="float:right; color:var(--accent-color); font-size:11px;">${dummyWinRate}% Win</div>
+                        <div style="float:right; color:var(--accent-color); font-size:11px;">VALIDATED</div>
                         <div class="card-symbol">${symbol.replace("USDT", "")}</div>
                         <div style="color:var(--success-color); font-weight:bold;">LONG BUY</div>
                         <div class="card-price">$${cur.toFixed(4)}</div>
@@ -722,7 +723,7 @@
         document.getElementById('notifDot').style.display = found > 0 ? "block" : "none";
     }
 
-    // --- 📂 BOOKED TRADES LOGIC (RE-BUILT PREVIOUS SYSTEM) ---
+    // --- 📂 BOOKED TRADES LOGIC ---
     function bookTrade(symbol, entry, tp, sl, trend) {
         let trades = JSON.parse(localStorage.getItem('trades_user') || '[]');
         const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -762,15 +763,14 @@
                 } catch (e) { console.log("Price fetch error"); }
             }
 
-            // 🎨 Dynamic Borders according to user logic
-            let outlineStyle = "border: 2px solid var(--warning-color);"; // ON GOING (Kaha)
+            let outlineStyle = "border: 2px solid var(--warning-color);";
             let badgeBg = "var(--warning-color)";
             
             if (t.status === "TP HIT") {
-                outlineStyle = "border: 2px solid var(--success-color);"; // TP HIT (Kola)
+                outlineStyle = "border: 2px solid var(--success-color);"; 
                 badgeBg = "var(--success-color)";
             } else if (t.status === "SL HIT") {
-                outlineStyle = "border: 2px solid var(--danger-color);"; // SL HIT (Rathu)
+                outlineStyle = "border: 2px solid var(--danger-color);"; 
                 badgeBg = "var(--danger-color)";
             }
 
