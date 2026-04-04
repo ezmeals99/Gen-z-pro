@@ -371,6 +371,14 @@
             font-size: 12px;
         }
 
+        .status-badge {
+            float: right;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 3px 6px;
+            border-radius: 4px;
+        }
+
         /* --- 🔐 Modal --- */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -528,6 +536,12 @@
         if (users[u] && users[u] === p) {
             document.getElementById('authOverlay').style.display = 'none';
             document.getElementById('appContent').style.display = 'block';
+            
+            // 🔔 Request Pinterest style notification permission
+            if (Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+            
             startScanner3Background(); 
             startAppBackgroundScanner(); 
         } else { document.getElementById('loginErr').style.display = 'block'; }
@@ -560,6 +574,16 @@
         const alertDiv = document.getElementById('customAlert');
         alertDiv.innerText = message; alertDiv.style.display = 'block';
         setTimeout(() => { alertDiv.style.display = 'none'; }, 3000);
+    }
+
+    // 🔔 Pinterest style push notification trigger
+    function sendPushNotification(title, message) {
+        if (Notification.permission === "granted") {
+            new Notification(title, {
+                body: message,
+                icon: "https://bin.bnbstatic.com/static/images/common/favicon.ico" // Binance icon
+            });
+        }
     }
 
     // --- 🚀 SCANNER 1: MAIN MARKET SCAN ---
@@ -604,6 +628,9 @@
             }
         }
         grid.innerHTML = tempGridHTML || `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No active signals.</div>`;
+        
+        // Modal athule thiyena trade details status live update karanna (TP/SL hit)
+        updateTrackedTrades();
     }
 
     // --- 🔍 SCANNER 2: SEARCH COIN ---
@@ -650,12 +677,11 @@
         document.getElementById('status').innerText = `Search complete.`;
     }
 
-    // --- 🛡️ SCANNER 3: LONG TERM (UPDATE) ---
+    // --- 🛡️ SCANNER 3: LONG TERM ---
     function startScanner3Background() { runLongTermBackground(); setInterval(runLongTermBackground, 180000); }
 
     async function runLongTermBackground() {
         const grid = document.getElementById('longTermGrid');
-        // Grid eka pure clear karanne na, previous alarms thiyenna ona hinda
         const signalTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         let found = 0;
 
@@ -676,7 +702,7 @@
                 // 🎯 Dummy Win Rate Calculation
                 const dummyWinRate = Math.min(85 + (rsi - 50) * 0.8, 98).toFixed(0);
                 
-                // ⏳ Trade duration eka (Volatility eken determine wenne)
+                // ⏳ Trade duration
                 let days = "2-4";
                 if (volatility / cur < 0.01) days = "5-7";
                 else if (volatility / cur > 0.03) days = "1-2";
@@ -696,25 +722,96 @@
                         </div>
                         <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, 'LONG BUY')">📌 BOOK LONG</button>
                     </div>`;
+
+                // 🔔 Phone notification udata popup wenne methanin
+                sendPushNotification(`🚀 Long Term Signal Detected!`, `${symbol.replace("USDT", "")} at $${cur.toFixed(4)} is looking good!`);
             }
         }
         
-        // 🔴 Signal ekak thibboth red pulse dot eka patthu wenawa
         document.getElementById('notifDot').style.display = found > 0 ? "block" : "none";
     }
 
+    // --- 📂 BOOKED TRADES LOGIC (RE-BUILT PREVIOUS SYSTEM) ---
     function bookTrade(symbol, entry, tp, sl, trend) {
         let trades = JSON.parse(localStorage.getItem('trades_user') || '[]');
-        trades.push({ symbol, entry, tp, sl, trend, status: "ON GOING", time: new Date().toLocaleString() });
+        const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        trades.push({ symbol, entry, tp, sl, trend, status: "ON GOING", time: time });
         localStorage.setItem('trades_user', JSON.stringify(trades)); 
-        showTopAlert(`✅ ${symbol} Trade Booked!`);
+        
+        showTopAlert(`✅ ${symbol} Trade Booked at ${time}!`);
+        updateTrackedTrades();
+    }
+
+    async function updateTrackedTrades() {
+        const grid = document.getElementById('trackedGrid');
+        let trades = JSON.parse(localStorage.getItem('trades_user') || '[]');
+        if (trades.length === 0) {
+            grid.innerHTML = `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No booked trades yet.</div>`;
+            return;
+        }
+
+        let tempHTML = "";
+        for (let i = 0; i < trades.length; i++) {
+            let t = trades[i];
+            
+            // On going ewata witharak live binance api check wenawa
+            if (t.status === "ON GOING") {
+                try {
+                    const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${t.symbol}USDT`);
+                    const data = await res.json();
+                    const livePrice = parseFloat(data.price);
+
+                    if (t.trend.includes("BUY")) {
+                        if (livePrice >= t.tp) t.status = "TP HIT";
+                        else if (livePrice <= t.sl) t.status = "SL HIT";
+                    } else { // SELL Trades
+                        if (livePrice <= t.tp) t.status = "TP HIT";
+                        else if (livePrice >= t.sl) t.status = "SL HIT";
+                    }
+                } catch (e) { console.log("Price fetch error"); }
+            }
+
+            let badgeBg = "var(--warning-color)";
+            if (t.status === "TP HIT") badgeBg = "var(--success-color)";
+            if (t.status === "SL HIT") badgeBg = "var(--danger-color)";
+
+            tempHTML += `
+                <div class="card" style="border: 1px solid #444;">
+                    <div class="status-badge" style="background-color:${badgeBg}; color:#000;">${t.status}</div>
+                    <div class="card-symbol">${t.symbol}/USDT</div>
+                    <div style="font-size:11px; color:#848e9c; margin-bottom:5px;">Booked at: ${t.time}</div>
+                    
+                    <div class="targets" style="font-size:12px;">
+                        <div class="row">Entry Price <span>$${t.entry.toFixed(4)}</span></div>
+                        <div class="row">Target TP <span style="color:var(--success-color)">$${t.tp.toFixed(4)}</span></div>
+                        <div class="row">Target SL <span style="color:var(--danger-color)">$${t.sl.toFixed(4)}</span></div>
+                    </div>
+                    <button class="btn-book" style="background-color:var(--danger-color); color:white; margin-top:5px; padding:5px; font-size:10px;" onclick="deleteTrade(${i})">🗑️ REMOVE</button>
+                </div>`;
+        }
+        
+        // Local storage ekatath save karanawa status update unama
+        localStorage.setItem('trades_user', JSON.stringify(trades));
+        grid.innerHTML = tempHTML;
+    }
+
+    function deleteTrade(index) {
+        let trades = JSON.parse(localStorage.getItem('trades_user') || '[]');
+        trades.splice(index, 1);
+        localStorage.setItem('trades_user', JSON.stringify(trades));
+        updateTrackedTrades();
     }
 
     function openLongTermModal() { document.getElementById('longTermModal').style.display = 'block'; }
     function closeLongTermModal() { document.getElementById('longTermModal').style.display = 'none'; }
     function openNotifModal() { document.getElementById('notifModal').style.display = 'block'; }
     function closeNotifModal() { document.getElementById('notifModal').style.display = 'none'; }
-    function openBookedTrades() { document.getElementById('tradesModal').style.display = 'block'; }
+    
+    function openBookedTrades() { 
+        updateTrackedTrades();
+        document.getElementById('tradesModal').style.display = 'block'; 
+    }
     function closeBookedTrades() { document.getElementById('tradesModal').style.display = 'none'; }
 </script>
 </body>
