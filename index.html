@@ -537,7 +537,6 @@
             document.getElementById('authOverlay').style.display = 'none';
             document.getElementById('appContent').style.display = 'block';
             
-            // 🔔 Request Pinterest style notification permission
             if (Notification.permission !== "granted") {
                 Notification.requestPermission();
             }
@@ -576,12 +575,11 @@
         setTimeout(() => { alertDiv.style.display = 'none'; }, 3000);
     }
 
-    // 🔔 Pinterest style push notification trigger
     function sendPushNotification(title, message) {
         if (Notification.permission === "granted") {
             new Notification(title, {
                 body: message,
-                icon: "https://bin.bnbstatic.com/static/images/common/favicon.ico" // Binance icon
+                icon: "https://bin.bnbstatic.com/static/images/common/favicon.ico"
             });
         }
     }
@@ -628,8 +626,6 @@
             }
         }
         grid.innerHTML = tempGridHTML || `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No active signals.</div>`;
-        
-        // Modal athule thiyena trade details status live update karanna (TP/SL hit)
         updateTrackedTrades();
     }
 
@@ -663,7 +659,7 @@
         const sl = trend.includes("BUY") ? cur - (volatility * 1.5) : cur + (volatility * 1.5);
 
         grid.innerHTML = `
-            <div class="card" style="border-top: 3px solid ${color}">
+            <div class="card" style="border-top: 3px solid color">
                 <div style="float:right; color:var(--accent-color); font-size:11px;">${accuracy.toFixed(0)}% Accuracy</div>
                 <div class="card-symbol">${symbol.replace("USDT", "")}/USDT</div>
                 <div style="font-size:14px; font-weight:bold; color:${color}">${trend}</div>
@@ -698,11 +694,8 @@
                 const tp = cur + (volatility * 5); 
                 const sl = cur - (volatility * 3);
                 const earnPercent = (((tp - cur) / cur) * 100).toFixed(2);
-                
-                // 🎯 Dummy Win Rate Calculation
                 const dummyWinRate = Math.min(85 + (rsi - 50) * 0.8, 98).toFixed(0);
                 
-                // ⏳ Trade duration
                 let days = "2-4";
                 if (volatility / cur < 0.01) days = "5-7";
                 else if (volatility / cur > 0.03) days = "1-2";
@@ -723,11 +716,9 @@
                         <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, 'LONG BUY')">📌 BOOK LONG</button>
                     </div>`;
 
-                // 🔔 Phone notification udata popup wenne methanin
-                sendPushNotification(`🚀 Long Term Signal Detected!`, `${symbol.replace("USDT", "")} at $${cur.toFixed(4)} is looking good!`);
+                sendPushNotification(`🚀 Long Term Signal Detected!`, `${symbol.replace("USDT", "")} at $${cur.toFixed(4)} looking good!`);
             }
         }
-        
         document.getElementById('notifDot').style.display = found > 0 ? "block" : "none";
     }
 
@@ -755,7 +746,6 @@
         for (let i = 0; i < trades.length; i++) {
             let t = trades[i];
             
-            // On going ewata witharak live binance api check wenawa
             if (t.status === "ON GOING") {
                 try {
                     const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${t.symbol}USDT`);
@@ -765,21 +755,32 @@
                     if (t.trend.includes("BUY")) {
                         if (livePrice >= t.tp) t.status = "TP HIT";
                         else if (livePrice <= t.sl) t.status = "SL HIT";
-                    } else { // SELL Trades
+                    } else {
                         if (livePrice <= t.tp) t.status = "TP HIT";
                         else if (livePrice >= t.sl) t.status = "SL HIT";
                     }
                 } catch (e) { console.log("Price fetch error"); }
             }
 
+            // 🎨 Dynamic Borders according to user logic
+            let outlineStyle = "border: 2px solid var(--warning-color);"; // ON GOING (Kaha)
             let badgeBg = "var(--warning-color)";
-            if (t.status === "TP HIT") badgeBg = "var(--success-color)";
-            if (t.status === "SL HIT") badgeBg = "var(--danger-color)";
+            
+            if (t.status === "TP HIT") {
+                outlineStyle = "border: 2px solid var(--success-color);"; // TP HIT (Kola)
+                badgeBg = "var(--success-color)";
+            } else if (t.status === "SL HIT") {
+                outlineStyle = "border: 2px solid var(--danger-color);"; // SL HIT (Rathu)
+                badgeBg = "var(--danger-color)";
+            }
+
+            let typeColor = t.trend.includes("BUY") ? "var(--success-color)" : "var(--danger-color)";
 
             tempHTML += `
-                <div class="card" style="border: 1px solid #444;">
+                <div class="card" style="${outlineStyle}">
                     <div class="status-badge" style="background-color:${badgeBg}; color:#000;">${t.status}</div>
                     <div class="card-symbol">${t.symbol}/USDT</div>
+                    <div style="font-size:12px; font-weight:bold; color:${typeColor}; margin-bottom:5px;">TYPE: ${t.trend}</div>
                     <div style="font-size:11px; color:#848e9c; margin-bottom:5px;">Booked at: ${t.time}</div>
                     
                     <div class="targets" style="font-size:12px;">
@@ -791,7 +792,6 @@
                 </div>`;
         }
         
-        // Local storage ekatath save karanawa status update unama
         localStorage.setItem('trades_user', JSON.stringify(trades));
         grid.innerHTML = tempHTML;
     }
@@ -807,11 +807,7 @@
     function closeLongTermModal() { document.getElementById('longTermModal').style.display = 'none'; }
     function openNotifModal() { document.getElementById('notifModal').style.display = 'block'; }
     function closeNotifModal() { document.getElementById('notifModal').style.display = 'none'; }
-    
-    function openBookedTrades() { 
-        updateTrackedTrades();
-        document.getElementById('tradesModal').style.display = 'block'; 
-    }
+    function openBookedTrades() { updateTrackedTrades(); document.getElementById('tradesModal').style.display = 'block'; }
     function closeBookedTrades() { document.getElementById('tradesModal').style.display = 'none'; }
 </script>
 </body>
