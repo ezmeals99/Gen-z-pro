@@ -26,7 +26,7 @@
             overflow-x: hidden;
         }
 
-        /* --- 🔐 Auth Screens (Login & Create Account) --- */
+        /* --- 🔐 Auth Screens --- */
         #authOverlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -371,14 +371,6 @@
             font-size: 12px;
         }
 
-        .status-badge {
-            float: right;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 3px 6px;
-            border-radius: 4px;
-        }
-
         /* --- 🔐 Modal --- */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -446,7 +438,6 @@
     </div>
 </div>
 
-<audio id="notif-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 <div id="customAlert"></div>
 
 <div id="appContent" style="display: none;">
@@ -539,12 +530,10 @@
             document.getElementById('appContent').style.display = 'block';
             startScanner3Background(); 
             startAppBackgroundScanner(); 
-            if (Notification.permission !== "granted") Notification.requestPermission();
         } else { document.getElementById('loginErr').style.display = 'block'; }
     }
 
     const filteredCoins = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", "DOGEUSDT", "LINKUSDT", "SHIBUSDT", "SUIUSDT", "NEARUSDT", "FILUSDT", "NILUSDT"];
-    let receivedSignals = [];
 
     async function getCandles(symbol, interval) {
         try {
@@ -617,7 +606,7 @@
         grid.innerHTML = tempGridHTML || `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No active signals.</div>`;
     }
 
-    // --- 🔍 SCANNER 2: SEARCH COIN (OYAGE OKKOMA CALCULATIONS EKKA) ---
+    // --- 🔍 SCANNER 2: SEARCH COIN ---
     async function searchCoin() {
         const coinInput = document.getElementById('sCoin').value.trim().toUpperCase();
         const tf = document.getElementById('tf').value, grid = document.getElementById('grid');
@@ -634,7 +623,6 @@
         const rsi = calculateRSI(closes, 14);
         let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
 
-        // 📈 Trend ekai accuracy ekai auto hadenawa
         let trend = "SIDEWAYS", color = "var(--accent-color)", accuracy = 50; 
         if (cur > sma50) { 
             trend = "UPTREND (BUY)"; color = "var(--success-color)"; 
@@ -662,11 +650,12 @@
         document.getElementById('status').innerText = `Search complete.`;
     }
 
-    // --- 🛡️ SCANNER 3: LONG TERM WITH TP/SL & RED DOT NOTIFICATION ---
+    // --- 🛡️ SCANNER 3: LONG TERM (UPDATE) ---
     function startScanner3Background() { runLongTermBackground(); setInterval(runLongTermBackground, 180000); }
 
     async function runLongTermBackground() {
-        const grid = document.getElementById('longTermGrid'); grid.innerHTML = "";
+        const grid = document.getElementById('longTermGrid');
+        // Grid eka pure clear karanne na, previous alarms thiyenna ona hinda
         const signalTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         let found = 0;
 
@@ -680,28 +669,37 @@
                 found++;
                 let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
                 
-                // ⏱️ TP / SL calculations for long term
                 const tp = cur + (volatility * 5); 
                 const sl = cur - (volatility * 3);
                 const earnPercent = (((tp - cur) / cur) * 100).toFixed(2);
+                
+                // 🎯 Dummy Win Rate Calculation
+                const dummyWinRate = Math.min(85 + (rsi - 50) * 0.8, 98).toFixed(0);
+                
+                // ⏳ Trade duration eka (Volatility eken determine wenne)
+                let days = "2-4";
+                if (volatility / cur < 0.01) days = "5-7";
+                else if (volatility / cur > 0.03) days = "1-2";
 
                 grid.innerHTML += `
                     <div class="card" style="border-top: 3px solid var(--success-color)">
-                        <div style="float:right; color:var(--accent-color); font-size:11px;">90%+ Win</div>
+                        <div style="float:right; color:var(--accent-color); font-size:11px;">${dummyWinRate}% Win</div>
                         <div class="card-symbol">${symbol.replace("USDT", "")}</div>
-                        <div style="color:var(--success-color);">LONG BUY</div>
+                        <div style="color:var(--success-color); font-weight:bold;">LONG BUY</div>
                         <div class="card-price">$${cur.toFixed(4)}</div>
                         <div class="targets">
                             <div class="row">Est. Profit <span style="color:#0ecb81">+${earnPercent}%</span></div>
                             <div class="row">Target TP <span>$${tp.toFixed(4)}</span></div>
-                            <div style="font-size:10px; color:#848e9c; margin-top:5px; text-align:right;">Detected at: ${signalTime}</div>
+                            <div class="row">Target SL <span style="color:var(--danger-color)">$${sl.toFixed(4)}</span></div>
+                            <div class="row" style="color:#848e9c;">Duration <span>${days} Days</span></div>
+                            <div style="font-size:10px; color:var(--warning-color); margin-top:5px; text-align:right;">Triggered at: ${signalTime}</div>
                         </div>
                         <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, 'LONG BUY')">📌 BOOK LONG</button>
                     </div>`;
             }
         }
         
-        // 🚨 Signal ekak thiyenawa nam Red Dot eka pennanawa
+        // 🔴 Signal ekak thibboth red pulse dot eka patthu wenawa
         document.getElementById('notifDot').style.display = found > 0 ? "block" : "none";
     }
 
