@@ -26,406 +26,54 @@
             overflow-x: hidden;
         }
 
-        /* --- 🛠️ Header --- */
-        .header {
-            background-color: var(--container-bg);
-            padding: 10px 15px;
-            border-bottom: 4px solid var(--accent-color);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .header-title-row {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h2 {
-            margin: 0;
-            font-size: 18px;
-            letter-spacing: 0.5px;
-            color: var(--text-color);
-        }
-
-        .header h2 span {
-            color: var(--accent-color);
-        }
-
-        .header-actions {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding-bottom: 5px;
-        }
-
-        button {
-            transition: transform 0.1s ease;
-            outline: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-            font-size: 12px;
-            padding: 8px 12px;
-            box-sizing: border-box;
-        }
-
-        button:active {
-            transform: scale(0.95);
-        }
-
-        .btn-logout {
-            background: transparent;
-            color: var(--danger-color);
-            border: 1px solid var(--danger-color);
-        }
-
-        .long-term-wrapper {
-            position: relative;
-        }
-
-        .btn-long-term {
-            background-color: var(--success-color);
-            color: #000;
-        }
-
-        .btn-notif {
-            background-color: #2b3139;
-            color: var(--text-color);
-            border: 1px solid #444;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn-notif span {
-            color: var(--accent-color);
-            font-weight: bold;
-        }
-
-        .red-dot {
-            display: none;
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            width: 10px;
-            height: 10px;
-            background-color: #ff4d4d;
-            border-radius: 50%;
-            border: 2px solid var(--container-bg);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        .search-container {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-        }
-
-        .search-input {
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background-color: #2b3139;
-            color: white;
-            width: 100px;
-            outline: none;
-            font-size: 12px;
-        }
-
-        .btn-search {
-            background-color: var(--accent-color);
-            color: #000;
-        }
-
-        .user-icon {
-            width: 32px;
-            height: 32px;
-            background-color: #2b3139;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            border: 1px solid #444;
-            transition: 0.2s;
-            flex-shrink: 0;
-        }
-
-        .user-icon:hover {
-            border-color: var(--accent-color);
-            background-color: var(--container-bg);
-        }
-
-        .user-icon svg {
-            fill: var(--accent-color);
-            width: 16px;
-            height: 16px;
-        }
-
-        /* --- 🕹️ Controls --- */
-        .controls {
-            margin: 15px auto;
-            padding: 15px;
-            background-color: var(--container-bg);
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            max-width: 90%;
-            border: 1px solid var(--border-color);
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .controls label {
-            font-size: 10px;
-            color: #848e9c;
-        }
-
-        .controls input[type="number"] {
-            background-color: #2b3139;
-            color: white;
-            border: 1px solid #444;
-            padding: 6px;
-            border-radius: 5px;
-            width: 70px;
-            font-size: 12px;
-            text-align: center;
-        }
-
-        .controls select {
-            background-color: #2b3139;
-            color: white;
-            border: 1px solid #444;
-            padding: 6px;
-            border-radius: 5px;
-            font-size: 12px;
-        }
-
-        .slider {
-            -webkit-appearance: none;
-            width: 80px;
-            height: 4px;
-            background: #444;
-            border-radius: 5px;
-            outline: none;
-        }
-
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: var(--accent-color);
-            cursor: pointer;
-        }
-
-        /* --- 🚀 Grid & Cards --- */
-        .btn-scan {
-            background-color: var(--accent-color);
-            color: #000;
-            border: none;
-            padding: 12px 0;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-            margin: 10px auto;
-            width: 70%;
-            max-width: 250px;
-            display: block;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 12px;
-            padding: 10px;
-            box-sizing: border-box;
-            width: 100%;
-        }
-
-        .card {
-            background-color: var(--container-bg);
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            text-align: left;
-            position: relative;
-        }
-
-        .card-symbol {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 3px;
-        }
-
-        .card-price {
-            font-size: 22px;
-            font-weight: bold;
-            margin: 6px 0;
-        }
-
-        .targets {
-            background: rgba(0,0,0,0.3);
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 8px;
-        }
-
-        .row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 11px;
-        }
-
-        .btn-book {
-            width: 100%;
-            background-color: var(--success-color);
-            color: #000;
-            border: none;
-            padding: 8px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 12px;
-        }
-
-        .status-badge {
-            float: right;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 3px 6px;
-            border-radius: 4px;
-        }
-
-        /* --- 🔐 Login & Modal --- */
+        /* --- 🔐 Login Screen --- */
         #loginOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 14, 17, 0.98);
-            display: flex; justify-content: center; align-items: center; z-index: 1000;
-        }
-
-        .login-box {
-            background-color: var(--container-bg); padding: 25px; border-radius: 12px;
-            border: 2px solid var(--accent-color); width: 80%; max-width: 300px; text-align: center;
-        }
-
-        .login-box input {
-            width: 100%; padding: 8px; margin: 8px 0; border-radius: 5px; border: 1px solid #444;
-            background-color: #2b3139; color: white; box-sizing: border-box; font-size: 14px;
-        }
-
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 14, 17, 0.98); z-index: 2000; overflow-y: auto;
-        }
-
-        .modal-content {
-            max-width: 90%; margin: 20px auto; padding: 10px;
-            background-color: var(--container-bg); border-radius: 12px; border: 1px solid var(--border-color);
-        }
-
-        .modal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 10px;
-        }
-
-        .close-btn { color: #848e9c; font-size: 24px; font-weight: bold; cursor: pointer; }
-
-        /* --- 🔔 Custom Top Notification --- */
-        #customAlert {
-            display: none;
             position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--container-bg);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            border: 2px solid var(--success-color);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            z-index: 3000;
-            font-size: 13px;
-            font-weight: bold;
-            text-align: center;
-            min-width: 250px;
-        }
-
-        @media (max-width: 600px) {
-            .header-actions { justify-content: space-between; }
-            .search-input { width: 80px; }
-            .controls { flex-direction: row; justify-content: space-around; max-width: 95%; }
-            .grid { grid-template-columns: 1fr; }
-        }
-    </style>
-</head>
-<body>
-
-<audio id="notif-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
-
-<div id="customAlert"></div>
-
-<div id="loginOverlay">
-    <div class="login-box">
-        <h2 style="color:var(--accent-color); margin-top:0; font-size: 20px;">GEN Z LOGIN</h2>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button style="background-color:var(--accent-color); width:100%; margin-top:10px;" onclick="attemptLogin()">LOGIN</button>
-        <button style="background:transparent; color:var(--accent-color); border:1px solid var(--accent-color); width:100%; margin-top:5px;" onclick="attemptCreate()">CREATE ACCOUNT</button>
-        <div id="loginMsg" style="color:var(--danger-color); font-size:11px; margin-top:10px;"></div>
-    </div>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GenZ Pro - Multi Scanner</title>
-    <style>
-        :root {
-            --bg-color: #0b0e11;
-            --container-bg: #1e2329;
-            --accent-color: #fcd535;
-            --text-color: #eaecef;
-            --success-color: #0ecb81;
-            --danger-color: #f6465d;
-            --warning-color: #f0b90b;
-            --border-color: #333;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
+            z-index: 5000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-box {
+            background-color: var(--container-bg);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            width: 80%;
+            max-width: 350px;
             text-align: center;
-            overflow-x: hidden;
+        }
+
+        .login-box h2 {
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background-color: #2b3139;
+            color: white;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--accent-color);
+            color: #000;
+            font-weight: bold;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
         }
 
         /* --- 🛠️ Header --- */
@@ -481,12 +129,6 @@
 
         button:active {
             transform: scale(0.95);
-        }
-
-        .btn-logout {
-            background: transparent;
-            color: var(--danger-color);
-            border: 1px solid var(--danger-color);
         }
 
         .long-term-wrapper {
@@ -725,23 +367,7 @@
             border-radius: 4px;
         }
 
-        /* --- 🔐 Login & Modal --- */
-        #loginOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 14, 17, 0.98);
-            display: flex; justify-content: center; align-items: center; z-index: 1000;
-        }
-
-        .login-box {
-            background-color: var(--container-bg); padding: 25px; border-radius: 12px;
-            border: 2px solid var(--accent-color); width: 80%; max-width: 300px; text-align: center;
-        }
-
-        .login-box input {
-            width: 100%; padding: 8px; margin: 8px 0; border-radius: 5px; border: 1px solid #444;
-            background-color: #2b3139; color: white; box-sizing: border-box; font-size: 14px;
-        }
-
+        /* --- 🔐 Modal --- */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(11, 14, 17, 0.98); z-index: 2000; overflow-y: auto;
@@ -789,20 +415,18 @@
 </head>
 <body>
 
-<audio id="notif-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
-
-<div id="customAlert"></div>
-
 <div id="loginOverlay">
     <div class="login-box">
-        <h2 style="color:var(--accent-color); margin-top:0; font-size: 20px;">GEN Z LOGIN</h2>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button style="background-color:var(--accent-color); width:100%; margin-top:10px;" onclick="attemptLogin()">LOGIN</button>
-        <button style="background:transparent; color:var(--accent-color); border:1px solid var(--accent-color); width:100%; margin-top:5px;" onclick="attemptCreate()">CREATE ACCOUNT</button>
-        <div id="loginMsg" style="color:var(--danger-color); font-size:11px; margin-top:10px;"></div>
+        <h2>GenZ Pro Login</h2>
+        <input type="password" id="passInput" placeholder="Enter Password..." onkeypress="if(event.key === 'Enter') checkPassword()">
+        <button onclick="checkPassword()">LOGIN</button>
+        <p id="loginErr" style="color:red; font-size:11px; margin-top:10px; display:none;">Wrong Password!</p>
     </div>
 </div>
+
+<audio id="notif-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+
+<div id="customAlert"></div>
 
 <div id="appContent" style="display: none;">
     <div class="header">
@@ -810,7 +434,6 @@
             <h2>GEN Z PRO</h2>
         </div>
         <div class="header-actions">
-            <button class="btn-logout" onclick="logout()">LOGOUT</button>
             
             <div class="long-term-wrapper">
                 <button class="btn-long-term" onclick="openLongTermModal()">LONG TERM</button>
@@ -897,6 +520,7 @@
 </div>
 
 <script>
+    const hardcodedPass = "1234"; 
     let mainScanInterval;
     let longTermInterval;
     let backgroundScannerInterval;
@@ -911,39 +535,18 @@
     
     let receivedSignals = [];
 
-    window.onload = function() {
-        if (!localStorage.getItem('users')) localStorage.setItem('users', JSON.stringify([{u: "alex", p: "123"}]));
-        if (localStorage.getItem('current_user')) {
+    function checkPassword() {
+        const input = document.getElementById('passInput').value;
+        if (input === hardcodedPass) {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContent').style.display = 'block';
             startScanner3Background(); 
             startAppBackgroundScanner(); 
+            if (Notification.permission !== "granted") Notification.requestPermission();
+        } else {
+            document.getElementById('loginErr').style.display = 'block';
         }
-        if (Notification.permission !== "granted") Notification.requestPermission();
-    };
-
-    function attemptLogin() {
-        const u = document.getElementById('username').value, p = document.getElementById('password').value;
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        if (users.find(user => user.u === u && user.p === p)) {
-            localStorage.setItem('current_user', u);
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('appContent').style.display = 'block';
-            startScanner3Background();
-            startAppBackgroundScanner();
-        } else { document.getElementById('loginMsg').innerText = "Invalid credentials!"; }
     }
-
-    function attemptCreate() {
-        const u = document.getElementById('username').value, p = document.getElementById('password').value;
-        if (!u || !p) return;
-        let users = JSON.parse(localStorage.getItem('users') || '[]');
-        if (users.some(user => user.u === u)) { document.getElementById('loginMsg').innerText = "Username exists!"; return; }
-        users.push({u, p}); localStorage.setItem('users', JSON.stringify(users));
-        localStorage.setItem('current_user', u); location.reload();
-    }
-    
-    function logout() { localStorage.removeItem('current_user'); location.reload(); }
 
     async function getCandles(symbol, interval) {
         try {
@@ -1053,12 +656,8 @@
         document.getElementById('status').innerText = `Scan complete. Found ${found} signals.`;
     }
 
-    // ⭐ [TIME MODIFICATION POINT] ⭐ Aluth time eka table cards walata add wenna methanata lines tikak add kala
     function addNotification(symbol, trend, accuracy, price) {
-        // Hama welema live time eka gannawa.
         const signalTime = new Date().toLocaleTimeString('en-US', { hour12: false });
-        
-        // Data structure ekata current time kalla add wenawa
         receivedSignals.unshift({ symbol, trend, accuracy, price, time: signalTime });
         if (receivedSignals.length > 20) receivedSignals.pop(); 
         document.getElementById('bellDot').style.display = "block"; 
@@ -1098,11 +697,11 @@
                 <div style="float:right; color:var(--accent-color); font-size:11px;">Analyzed</div>
                 <div class="card-symbol">${symbol.replace("USDT", "")}/USDT</div>
                 <div style="font-size:14px; font-weight:bold; color:${color}">Status: ${trend}</div>
-                <div class="card-price">$$${cur.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</div>
+                <div class="card-price">$${cur.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</div>
                 
                 <div class="targets">
-                    <div class="row">Target Price (TP) <span style="color:var(--success-color)">$$${tp.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</span></div>
-                    <div class="row">Stop Loss (SL) <span style="color:var(--danger-color)">$$${sl.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</span></div>
+                    <div class="row">Target Price (TP) <span style="color:var(--success-color)">$${tp.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</span></div>
+                    <div class="row">Stop Loss (SL) <span style="color:var(--danger-color)">$${sl.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</span></div>
                 </div>
                 
                 <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, '${trend}')">📌 BOOK TRADE</button>
@@ -1121,6 +720,9 @@
         const grid = document.getElementById('longTermGrid');
         grid.innerHTML = "";
         let found = 0;
+
+        // ⏱️ Auto time eka ganna me code eka gaththa
+        const signalTime = new Date().toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
 
         for (let symbol of filteredCoins) {
             const candles = await getCandles(symbol, "4h"); 
@@ -1143,10 +745,11 @@
                         <div style="float:right; color:var(--accent-color); font-size:11px;">90%+ Win</div>
                         <div class="card-symbol">${symbol.replace("USDT", "")}/USDT</div>
                         <div style="font-size:12px; font-weight:bold; color:var(--success-color);">LONG TERM BUY</div>
-                        <div class="card-price">$$${cur.toFixed(symbol.includes('SHIB') ? 6 : 4)}</div>
+                        <div class="card-price">$${cur.toFixed(symbol.includes('SHIB') ? 6 : 4)}</div>
                         <div class="targets">
                             <div class="row">Est. Profit <span style="color:#0ecb81">+${earnPercent}%</span></div>
-                            <div class="row">Target TP <span>$$${tp.toFixed(symbol.includes('SHIB') ? 6 : 4)}</span></div>
+                            <div class="row">Target TP <span>$${tp.toFixed(symbol.includes('SHIB') ? 6 : 4)}</span></div>
+                            <div style="font-size:10px; color:#848e9c; margin-top:5px; text-align:right;">Detected at: ${signalTime}</div>
                         </div>
                         <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, 'LONG BUY')">📌 BOOK LONG TRADE</button>
                     </div>
@@ -1164,7 +767,7 @@
 
     // --- 📂 BOOKED TRADES SYSTEM WITH LIVE STATUS & DELETE ---
     function bookTrade(symbol, entry, tp, sl, trend) {
-        const tradeKey = `trades_${localStorage.getItem('current_user')}`;
+        const tradeKey = `trades_user`;
         let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
         
         trades.push({ 
@@ -1191,7 +794,7 @@
     }
 
     async function loadTrackedTrades() {
-        const tradeKey = `trades_${localStorage.getItem('current_user')}`;
+        const tradeKey = `trades_user`;
         let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
         const trackedGrid = document.getElementById('trackedGrid'); 
         trackedGrid.innerHTML = "<div style='color:var(--accent-color); font-size:12px; grid-column:1/-1;'>Checking live prices...</div>";
@@ -1207,7 +810,6 @@
             let t = trades[i];
             let livePriceText = "Fetching...";
             
-            // Only fetch live price and check status if it is still ongoing
             if (t.status === "ON GOING") {
                 const livePrice = await getCurrentPrice(t.symbol + "USDT");
                 if (livePrice) {
@@ -1238,9 +840,9 @@
                     <span class="status-badge" style="background-color:${badgeBg}; color:${badgeColor};">${t.status}</span>
                     <div style="font-size:14px; font-weight:bold">${t.symbol}/USDT</div>
                     <div style="font-size:11px; color:${color}; font-weight:bold;">${t.trend}</div>
-                    <div style="font-size:11px; margin-top:5px;">Entry: $$${t.entry.toFixed(4)}</div>
+                    <div style="font-size:11px; margin-top:5px;">Entry: $${t.entry.toFixed(4)}</div>
                     <div style="font-size:11px; color:var(--accent-color);">Live Price: ${livePriceText}</div>
-                    <div style="font-size:10px; color:#848e9c; margin-top:2px;">TP: $$${t.tp.toFixed(4)} | SL: $$${t.sl.toFixed(4)}</div>
+                    <div style="font-size:10px; color:#848e9c; margin-top:2px;">TP: $${t.tp.toFixed(4)} | SL: $${t.sl.toFixed(4)}</div>
                     <div style="font-size:9px; color:#555; margin-top:5px;">Booked at: ${t.time}</div>
                     <button style="background:transparent; color:var(--danger-color); font-size:10px; padding:2px 5px; margin-top:5px; border:1px solid var(--danger-color); border-radius:4px;" onclick="deleteTrade(${i})">Delete</button>
                 </div>`;
@@ -1248,7 +850,7 @@
     }
 
     function deleteTrade(index) {
-        const tradeKey = `trades_${localStorage.getItem('current_user')}`;
+        const tradeKey = `trades_user`;
         let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
         trades.splice(index, 1);
         localStorage.setItem(tradeKey, JSON.stringify(trades));
@@ -1278,7 +880,7 @@
                     <div style="float:right; font-size:10px; color:#848e9c;">${n.time}</div>
                     <div style="font-size:14px; font-weight:bold">${n.symbol}/USDT</div>
                     <div style="font-size:11px; color:${color}; font-weight:bold;">${n.trend} (Win Rate: ${n.accuracy.toFixed(0)}%)</div>
-                    <div style="font-size:10px; color:#eaecef;">Detected Price: $$${n.price.toFixed(4)}</div>
+                    <div style="font-size:10px; color:#eaecef;">Detected Price: $${n.price.toFixed(4)}</div>
                 </div>
             `;
         }
