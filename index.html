@@ -727,7 +727,7 @@
                 found++;
                 let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
                 const tp = cur + (volatility * 5); 
-                const sl = cur - (volatility * 3);
+                const sl = cur - (volatility * 3); // 🛠️ Stop Loss added for Long Term
                 
                 const earnPercent = (((tp - cur) / cur) * 100).toFixed(2);
 
@@ -740,6 +740,7 @@
                         <div class="targets">
                             <div class="row">Est. Profit <span style="color:#0ecb81">+${earnPercent}%</span></div>
                             <div class="row">Target TP <span>$${tp.toFixed(symbol.includes('SHIB') ? 6 : 4)}</span></div>
+                            <div class="row">Target SL <span style="color:var(--danger-color)">$${sl.toFixed(symbol.includes('SHIB') ? 6 : 4)}</span></div>
                         </div>
                         <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, 'LONG BUY')">📌 BOOK LONG TRADE</button>
                     </div>
@@ -800,7 +801,6 @@
             let t = trades[i];
             let livePriceText = "Fetching...";
             
-            // Only fetch live price and check status if it is still ongoing
             if (t.status === "ON GOING") {
                 const livePrice = await getCurrentPrice(t.symbol + "USDT");
                 if (livePrice) {
@@ -849,7 +849,6 @@
         showTopAlert('🗑️ Trade deleted from history.', true);
     }
 
-    // --- 🔔 NOTIFICATION SYSTEM (HISTORY) ---
     function openNotifModal() { 
         document.getElementById('notifModal').style.display = 'block'; 
         document.getElementById('bellDot').style.display = "none"; 
