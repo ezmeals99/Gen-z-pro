@@ -3,297 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EZ Trades - Professional Market Scanner</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>EZ Trades - Professional Scanner</title>
     <style>
         :root {
-            --bg-dark: #121212;
+            --bg-color: #121212;
             --card-bg: #1e1e1e;
-            --ash-text: #b0b0b0;
-            --accent-green: #00c853;
-            --accent-red: #ff3d00;
-            --border-color: #333;
+            --dark-ash: #2b3139;
+            --accent-color: #f0b90b;
+            --success-color: #0ecb81;
+            --danger-color: #f6465d;
+            --warning-color: #ffb100;
+            --text-main: #eaecef;
+            --text-dim: #848e9c;
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            display: flex;
+            padding: 10px;
         }
 
-        /* Sidebar */
-        .sidebar {
-            width: 240px;
-            height: 100vh;
-            background: #0a0a0a;
-            border-right: 1px solid var(--border-color);
-            position: fixed;
-            padding: 20px 0;
-        }
-
-        .logo {
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.5rem;
-            color: var(--accent-green);
-            margin-bottom: 30px;
-        }
-
-        .nav-item {
-            padding: 15px 25px;
-            color: var(--ash-text);
-            cursor: pointer;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background: #1e1e1e;
-            color: white;
-            border-left: 4px solid var(--accent-green);
-        }
-
-        .nav-item i { margin-right: 15px; }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 240px;
-            padding: 30px;
-            width: 100%;
-        }
-
-        .header-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-
-        .stat-card input {
-            background: #2a2a2a;
-            border: 1px solid #444;
-            color: white;
-            padding: 8px;
-            border-radius: 5px;
-            width: 80%;
-            margin-top: 10px;
-        }
-
-        /* Scanner Area */
-        .scanner-controls {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
+        /* --- Header & Layout --- */
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-        }
-
-        .btn-scan {
-            background: var(--accent-green);
-            color: black;
-            font-weight: bold;
-            border: none;
-            padding: 12px 30px;
+            padding: 15px;
+            background: var(--card-bg);
             border-radius: 8px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .btn-scan:hover { transform: scale(1.05); }
-
-        /* Signal Cards */
-        .signals-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-        }
-
-        .signal-card {
-            background: var(--card-bg);
-            border-radius: 15px;
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .signal-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 5px; height: 100%;
-            background: var(--accent-green);
-        }
-
-        .signal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 15px;
         }
 
-        .win-rate {
-            background: rgba(0, 200, 83, 0.2);
-            color: var(--accent-green);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-        }
-
-        .trade-details {
-            font-size: 0.9rem;
-            color: var(--ash-text);
-            line-height: 1.6;
-        }
-
-        .trade-details b { color: white; }
-
-        .action-btns {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-book {
-            flex: 1;
-            background: #333;
-            color: white;
+        .btn-main {
+            background: var(--accent-color);
+            color: #000;
             border: none;
-            padding: 8px;
+            padding: 10px 15px;
             border-radius: 5px;
+            font-weight: bold;
             cursor: pointer;
         }
 
-        /* Notifications */
-        #notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--accent-green);
-            color: black;
-            padding: 15px 25px;
+        /* --- Grid System --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .card {
+            background: var(--dark-ash);
             border-radius: 8px;
+            padding: 12px;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .card:hover { transform: translateY(-3px); }
+
+        .card-symbol { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
+        .card-price { font-size: 18px; color: var(--accent-color); margin-bottom: 10px; }
+        
+        .status-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* --- Buttons --- */
+        .btn-book {
+            width: 100%;
+            background: #444;
+            color: #fff;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .btn-book:hover { background: #555; }
+
+        /* --- Modals --- */
+        .modal {
             display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
             z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            margin: 10% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 12px;
+            border: 1px solid #444;
+        }
+
+        .close-btn { float: right; cursor: pointer; font-size: 24px; color: var(--text-dim); }
+
+        #customAlert {
+            display: none;
+            position: fixed;
+            top: 20px; right: 20px;
+            background: var(--success-color);
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 2000;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="logo">EZ TRADES</div>
-        <div class="nav-item active"><i class="fas fa-chart-line"></i> Dashboard</div>
-        <div class="nav-item"><i class="fas fa-book"></i> Booked Trades</div>
-        <div class="nav-item"><i class="fas fa-bell"></i> Notifications</div>
-        <div class="nav-item"><i class="fas fa-user-lock"></i> Login / API</div>
+<div id="customAlert">Trade Booked Successfully!</div>
+
+<div class="header">
+    <div>
+        <h2 style="margin:0; color:var(--accent-color);">EZ TRADES</h2>
+        <span style="font-size:12px; color:var(--text-dim);">Market Scanner 4H/1H</span>
     </div>
+    <div style="display:flex; gap:10px;">
+        <button class="btn-main" onclick="startScanner()">🚀 SCAN NOW</button>
+        <button style="background:#333; border:1px solid #555; color:#fff; padding:10px; border-radius:5px; cursor:pointer;" onclick="openBookedTrades()">📂 MY TRADES</button>
+    </div>
+</div>
 
-    <div class="main-content">
-        <div class="header-stats">
-            <div class="stat-card">
-                <div>Wallet Balance (USDT)</div>
-                <input type="number" id="walletAmount" placeholder="Enter Amount" value="50">
-            </div>
-            <div class="stat-card">
-                <div>Active Strategy</div>
-                <div style="color: var(--accent-green); font-weight: bold; margin-top: 10px;">SMC + Elliott Wave</div>
-            </div>
-            <div class="stat-card">
-                <div>Current BTC Price</div>
-                <div id="btcPrice" style="font-size: 1.2rem; font-weight: bold; margin-top: 10px;">Loading...</div>
-            </div>
-        </div>
+<div id="status" style="font-size:13px; color:var(--warning-color); padding-left:10px;">System Ready. Press Scan.</div>
 
-        <div class="scanner-controls">
-            <div>
-                <h2 style="margin: 0;">Market Scanner</h2>
-                <span style="color: var(--ash-text); font-size: 0.8rem;">Real-time Smart Money Analysis</span>
-            </div>
-            <button class="btn-scan" onclick="runScanner()">RUN LIVE SCAN</button>
-        </div>
+<div class="grid" id="mainGrid"></div>
 
-        <div class="signals-grid" id="signalsGrid">
+<div id="tradesModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeBookedTrades()">&times;</span>
+        <h3 style="color:var(--accent-color);">📂 TRACKED TRADES</h3>
+        <div id="trackedGrid" style="max-height: 400px; overflow-y: auto;">
             </div>
     </div>
+</div>
 
-    <div id="notification">New High-Probability Signal Found!</div>
+<script>
+    const filteredCoins = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", "DOGEUSDT", "LINKUSDT", "NEARUSDT"];
+    
+    // --- Data Fetching ---
+    async function fetchData(url) {
+        try { const r = await fetch(url); return await r.json(); } catch(e) { return null; }
+    }
 
-    <script>
-        // Binance API Connection for Real-time Price
-        const btcPriceElement = document.getElementById('btcPrice');
-        const btcWs = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@ticker');
+    function calculateRSI(closes) {
+        let gains = 0, losses = 0;
+        for (let i = 1; i <= 14; i++) {
+            let d = closes[i] - closes[i-1];
+            if (d >= 0) gains += d; else losses -= d;
+        }
+        let avgG = gains/14, avgL = losses/14;
+        for (let i = 15; i < closes.length; i++) {
+            let d = closes[i] - closes[i-1];
+            avgG = (avgG * 13 + (d > 0 ? d : 0)) / 14;
+            avgL = (avgL * 13 + (d < 0 ? -d : 0)) / 14;
+        }
+        return 100 - (100 / (1 + avgG/avgL));
+    }
 
-        btcWs.onmessage = (event) => {
-            let data = JSON.parse(event.data);
-            btcPriceElement.innerText = `$${parseFloat(data.c).toLocaleString()}`;
-        };
+    // --- Main Scanner Logic ---
+    async function startScanner() {
+        const grid = document.getElementById('mainGrid');
+        const status = document.getElementById('status');
+        grid.innerHTML = "";
+        status.innerText = "Scanning 10+ Pairs for 90%+ setups...";
 
-        function runScanner() {
-            const grid = document.getElementById('signalsGrid');
-            const wallet = document.getElementById('walletAmount').value;
-            grid.innerHTML = '<p>Scanning all timeframes (M15, H1, D1) for Liquidity & Elliott Waves...</p>';
+        let found = 0;
+        for (let symbol of filteredCoins) {
+            const data = await fetchData(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1h&limit=50`);
+            if (!data) continue;
 
-            // Mocking the Logic for SMC & Elliott Wave Scan
-            setTimeout(() => {
-                grid.innerHTML = '';
-                
-                // Example Trade 1: SMC Intraday
-                createSignalCard("BTC/USDT", "SMC - Break of Structure", "85%", "Buy/Long", "3x", 70500, 68900);
-                
-                // Example Trade 2: Elliott Wave Long Term
-                createSignalCard("ETH/USDT", "Elliott Wave (Wave 3)", "92%", "Buy/Long", "2x", 4200, 3100);
-                
-                // Example Trade 3: RSI Divergence
-                createSignalCard("SOL/USDT", "RSI Bullish Divergence", "78%", "Buy/Long", "5x", 165, 142);
+            const closes = data.map(d => parseFloat(d[4]));
+            const curPrice = closes[closes.length-1];
+            const sma50 = closes.reduce((a,b) => a+b, 0) / closes.length;
+            const rsi = calculateRSI(closes);
 
-                showNotification();
-            }, 2000);
+            // Signal Logic
+            let trend = "";
+            if (curPrice > sma50 && rsi < 35) trend = "BUY";
+            else if (curPrice < sma50 && rsi > 65) trend = "SELL";
+
+            if (trend) {
+                found++;
+                const tp = trend === "BUY" ? curPrice * 1.03 : curPrice * 0.97;
+                const sl = trend === "BUY" ? curPrice * 0.98 : curPrice * 1.02;
+                renderCard(grid, symbol, curPrice, tp, sl, trend);
+            }
+        }
+        status.innerText = `Scan Complete. Found ${found} high probability trades.`;
+    }
+
+    function renderCard(target, symbol, price, tp, sl, trend) {
+        const color = trend === "BUY" ? "var(--success-color)" : "var(--danger-color)";
+        target.innerHTML += `
+            <div class="card" style="border-top: 3px solid ${color}">
+                <span class="status-badge" style="background:${color}; color:#000;">${trend}</span>
+                <div class="card-symbol">${symbol.replace("USDT", "")}</div>
+                <div class="card-price">$${price.toFixed(price < 1 ? 4 : 2)}</div>
+                <div style="font-size:10px; color:var(--text-dim); margin-bottom:10px;">
+                    TP: ${tp.toFixed(2)}<br>SL: ${sl.toFixed(2)}
+                </div>
+                <button class="btn-book" onclick="bookTrade('${symbol}', ${price}, ${tp}, ${sl}, '${trend}')">📌 BOOK TRADE</button>
+            </div>
+        `;
+    }
+
+    // --- Trade Management ---
+    function bookTrade(symbol, entry, tp, sl, trend) {
+        const user = localStorage.getItem('current_user') || 'default';
+        const tradeKey = `trades_${user}`;
+        let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
+        
+        trades.push({
+            symbol, entry, tp, sl, trend,
+            status: "ON GOING",
+            time: new Date().toLocaleTimeString()
+        });
+
+        localStorage.setItem(tradeKey, JSON.stringify(trades));
+        showTopAlert(`✅ ${symbol} Trade Booked!`);
+    }
+
+    async function loadTrackedTrades() {
+        const user = localStorage.getItem('current_user') || 'default';
+        const tradeKey = `trades_${user}`;
+        let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
+        const grid = document.getElementById('trackedGrid');
+        
+        if (trades.length === 0) {
+            grid.innerHTML = "<p style='color:#666;'>No trades tracked yet.</p>";
+            return;
         }
 
-        function createSignalCard(pair, strategy, winRate, type, leverage, tp, sl) {
-            const grid = document.getElementById('signalsGrid');
-            const card = document.createElement('div');
-            card.className = 'signal-card';
-            
-            card.innerHTML = `
-                <div class="signal-header">
-                    <h3 style="margin:0">${pair}</h3>
-                    <span class="win-rate">${winRate} Win Rate</span>
-                </div>
-                <div class="trade-details">
-                    <p>Strategy: <b>${strategy}</b></p>
-                    <p>Type: <b style="color:var(--accent-green)">${type}</b> | Leverage: <b>${leverage}</b></p>
-                    <p>Target (TP): <b style="color:var(--accent-green)">$${tp}</b></p>
-                    <p>Stop Loss (SL): <b style="color:var(--accent-red)">$${sl}</b></p>
-                </div>
-                <div class="action-btns">
-                    <button class="btn-book" onclick="bookTrade('${pair}')">Book Trade</button>
-                    <button class="btn-book" style="background:var(--accent-green); color:black;">Open on Binance</button>
+        grid.innerHTML = "<p style='font-size:12px; color:orange;'>Updating live prices...</p>";
+        let html = "";
+
+        for (let i = 0; i < trades.length; i++) {
+            let t = trades[i];
+            const ticker = await fetchData(`https://api.binance.com/api/v3/ticker/price?symbol=${t.symbol}`);
+            const livePrice = ticker ? parseFloat(ticker.price) : 0;
+
+            // Live TP/SL logic
+            if (t.status === "ON GOING" && livePrice > 0) {
+                if (t.trend === "BUY") {
+                    if (livePrice >= t.tp) t.status = "TP HIT ✅";
+                    else if (livePrice <= t.sl) t.status = "SL HIT ❌";
+                } else {
+                    if (livePrice <= t.tp) t.status = "TP HIT ✅";
+                    else if (livePrice >= t.sl) t.status = "SL HIT ❌";
+                }
+                trades[i] = t;
+                localStorage.setItem(tradeKey, JSON.stringify(trades));
+            }
+
+            html += `
+                <div style="background:#2b3139; padding:10px; border-radius:8px; margin-bottom:10px; border-left:4px solid ${t.trend==='BUY'?'#0ecb81':'#f6465d'}">
+                    <div style="display:flex; justify-content:space-between;">
+                        <b>${t.symbol}</b>
+                        <span style="font-size:11px; color:var(--accent-color)">${t.status}</span>
+                    </div>
+                    <div style="font-size:12px; margin-top:5px;">
+                        Entry: $${t.entry.toFixed(2)} | Live: $${livePrice.toFixed(2)}
+                    </div>
+                    <button onclick="deleteTrade(${i})" style="background:transparent; color:red; border:none; cursor:pointer; font-size:10px; margin-top:5px;">[ Remove ]</button>
                 </div>
             `;
-            grid.appendChild(card);
         }
+        grid.innerHTML = html;
+    }
 
-        function bookTrade(pair) {
-            alert(pair + " has been added to your Booked Trades.");
-        }
+    function deleteTrade(index) {
+        const user = localStorage.getItem('current_user') || 'default';
+        const tradeKey = `trades_${user}`;
+        let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
+        trades.splice(index, 1);
+        localStorage.setItem(tradeKey, JSON.stringify(trades));
+        loadTrackedTrades();
+    }
 
-        function showNotification() {
-            const note = document.getElementById('notification');
-            note.style.display = 'block';
-            setTimeout(() => { note.style.display = 'none'; }, 4000);
-        }
-    </script>
+    // --- UI Helpers ---
+    function showTopAlert(msg) {
+        const a = document.getElementById('customAlert');
+        a.innerText = msg; a.style.display = 'block';
+        setTimeout(() => a.style.display = 'none', 3000);
+    }
+    function openBookedTrades() { document.getElementById('tradesModal').style.display='block'; loadTrackedTrades(); }
+    function closeBookedTrades() { document.getElementById('tradesModal').style.display='none'; }
+
+    // Auto-update prices every 60 seconds if modal is open
+    setInterval(() => {
+        if(document.getElementById('tradesModal').style.display === 'block') loadTrackedTrades();
+    }, 60000);
+
+</script>
 </body>
 </html>
