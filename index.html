@@ -507,8 +507,8 @@
 </div>
 
 <div id="tradesModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 style="color:var(--accent-color); margin:0; font-size:16px;">📂 MY BOOKED TRADES</h3><span class="close-btn" onclick="closeBookedTrades()">&times;</span></div><div class="grid" id="trackedGrid" style="padding:0;"></div></div></div>
-<div id="notifModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 style="color:var(--accent-color); margin:0; font-size:16px;">🔔 RECENT HIGH PROBABILITY SIGNALS</h3><span class="close-btn" onclick="closeNotifModal()">&times;</span></div><div class="grid" id="notifGrid" style="padding:0;"><div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No high probability signals received yet.</div></div></div></div>
-<div id="longTermModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 style="color:var(--success-color); margin:0; font-size:16px;">🚀 LONG TERM COINS</h3><span class="close-btn" onclick="closeLongTermModal()">&times;</span></div><div class="grid" id="longTermGrid" style="padding:0;"></div></div></div>
+<div id="notifModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 style="color:var(--accent-color); margin:0; font-size:16px;">🔔 RECENT SIGNALS</h3><span class="close-btn" onclick="closeNotifModal()">&times;</span></div><div class="grid" id="notifGrid" style="padding:0;"><div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No high probability signals received yet.</div></div></div></div>
+<div id="longTermModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 style="color:var(--success-color); margin:0; font-size:16px;">🚀 LONG TERM COINS (90%+)</h3><span class="close-btn" onclick="closeLongTermModal()">&times;</span></div><div class="grid" id="longTermGrid" style="padding:0;"><div id="ltEmpty" style="color:#848e9c; font-size:12px; grid-column:1/-1;">No 90%+ probability signals yet. Scanning...</div></div></div></div>
 
 <script>
     // --- 🔐 Auth Logic ---
@@ -584,33 +584,24 @@
         }
     }
 
-    // --- 📊 REAL PROBABILITY LOGIC (HARI PERCENTAGE EKA) ---
+    // --- 📊 HIGH PROBABILITY ALGORITHM ---
     function calculateProbability(cur, sma50, rsi, trend) {
-        let score = 0;
+        let score = 50; // Base market chance
         
-        // 1. RSI Factor (Max 40 Points)
+        // Optimize Score with respect to real market indicators
         if (trend === "BUY") {
-            if (rsi < 30) score += 40;
-            else if (rsi < 40) score += 30;
-            else if (rsi < 50) score += 15;
+            if (rsi < 35) score += 35;
+            else if (rsi < 45) score += 20;
+            
+            if (cur > sma50) score += 10;
         } else if (trend === "SELL") {
-            if (rsi > 70) score += 40;
-            else if (rsi > 60) score += 30;
-            else if (rsi > 50) score += 15;
+            if (rsi > 65) score += 35;
+            else if (rsi > 55) score += 20;
+            
+            if (cur < sma50) score += 10;
         }
 
-        // 2. Trend Distance (SMA 50) Factor (Max 35 Points)
-        const percentFromSma = Math.abs(cur - sma50) / sma50;
-        if (trend === "BUY") {
-            if (cur > sma50) score += Math.min(percentFromSma * 1000, 35); 
-        } else if (trend === "SELL") {
-            if (cur < sma50) score += Math.min(percentFromSma * 1000, 35); 
-        }
-
-        // 3. Constant Market Base Probability
-        score += 20;
-
-        return Math.min(Math.floor(score), 98); 
+        return Math.min(score, 98); // Lock up to 98%
     }
 
     // --- 🚀 SCANNER 1: MAIN MARKET SCAN ---
@@ -628,17 +619,17 @@
             const rsi = calculateRSI(closes, 14);
 
             let trend = "", isMatch = false;
-            if (cur > sma50 && rsi < 40) { trend = "BUY"; isMatch = true; }
-            else if (cur < sma50 && rsi > 60) { trend = "SELL"; isMatch = true; }
+            // Eased the tight limits for better scan hits
+            if (rsi < 45) { trend = "BUY"; isMatch = true; }
+            else if (rsi > 55) { trend = "SELL"; isMatch = true; }
 
             if (isMatch) {
-                // Calculation of real probability percentage
                 const realProb = calculateProbability(cur, sma50, rsi, trend);
 
                 const fee = (wallet * lev * 0.00018) * 2;
                 let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
-                const tp = trend === "BUY" ? cur + (volatility * 1.5) : cur - (volatility * 1.5);
-                const sl = trend === "BUY" ? cur - (volatility * 2) : cur + (volatility * 2);
+                const tp = trend === "BUY" ? cur + (volatility * 1.2) : cur - (volatility * 1.2);
+                const sl = trend === "BUY" ? cur - (volatility * 1.5) : cur + (volatility * 1.5);
                 const diff = trend === "BUY" ? (tp - cur) / cur : (cur - tp) / cur;
                 const earn = ((wallet * lev * diff) - fee).toFixed(2);
 
@@ -651,18 +642,18 @@
                         <div class="card-price">$${cur.toFixed(4)}</div>
                         <div class="targets">
                             <div class="row">Potential Earn <span style="color:#0ecb81">+$${earn}</span></div>
-                            <div class="row">Target Price <span>$${tp.toFixed(4)}</span></div>
+                            <div class="row">Target TP <span>$${tp.toFixed(4)}</span></div>
                             <div class="row" style="color:#848e9c;">RSI: <span>${rsi.toFixed(2)}</span></div>
                         </div>
                         <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, '${trend}')">📌 BOOK TRADE</button>
                     </div>`;
             }
         }
-        grid.innerHTML = tempGridHTML || `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No active signals.</div>`;
+        grid.innerHTML = tempGridHTML || `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No active signals. Please try scanning again later.</div>`;
         updateTrackedTrades();
     }
 
-    // --- 🔍 SCANNER 2: SEARCH COIN (REAL PERCENTAGE) ---
+    // --- 🔍 SCANNER 2: SEARCH COIN ---
     async function searchCoin() {
         const coinInput = document.getElementById('sCoin').value.trim().toUpperCase();
         const tf = document.getElementById('tf').value, grid = document.getElementById('grid');
@@ -679,14 +670,12 @@
         const rsi = calculateRSI(closes, 14);
         let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
 
-        let trend = "SIDEWAYS", color = "var(--accent-color)"; 
-        if (cur > sma50) { trend = "BUY"; color = "var(--success-color)"; } 
-        else if (cur < sma50) { trend = "SELL"; color = "var(--danger-color)"; }
+        let trend = "BUY", color = "var(--success-color)"; 
+        if (rsi > 50) { trend = "SELL"; color = "var(--danger-color)"; }
 
-        // Calculation of real probability percentage
         const realProb = calculateProbability(cur, sma50, rsi, trend);
 
-        const tp = trend === "BUY" ? cur + (volatility * 1.5) : cur - (volatility * 1.5);
+        const tp = trend === "BUY" ? cur + (volatility * 1.2) : cur - (volatility * 1.2);
         const sl = trend === "BUY" ? cur - (volatility * 1.5) : cur + (volatility * 1.5);
 
         grid.innerHTML = `
@@ -696,7 +685,7 @@
                 <div style="font-size:14px; font-weight:bold; color:${color}">${trend === "BUY" ? "UPTREND (BUY)" : "DOWNTREND (SELL)"}</div>
                 <div class="card-price">$${cur.toFixed(4)}</div>
                 <div class="targets">
-                    <div class="row">Target Price (TP) <span style="color:var(--success-color)">$${tp.toFixed(4)}</span></div>
+                    <div class="row">Target TP <span style="color:var(--success-color)">$${tp.toFixed(4)}</span></div>
                     <div class="row">Stop Loss (SL) <span style="color:var(--danger-color)">$${sl.toFixed(4)}</span></div>
                     <div class="row">RSI 14 <span>${rsi.toFixed(2)}</span></div>
                 </div>
@@ -705,13 +694,15 @@
         document.getElementById('status').innerText = `Search complete.`;
     }
 
-    // --- 🛡️ SCANNER 3: LONG TERM (REAL PROBABILITY) ---
-    function startScanner3Background() { runLongTermBackground(); setInterval(runLongTermBackground, 180000); }
+    // --- 🛡️ SCANNER 3: LONG TERM (FILTER OUT ALL UNDER 90%) ---
+    function startScanner3Background() { runLongTermBackground(); setInterval(runLongTermBackground, 120000); }
 
     async function runLongTermBackground() {
         const grid = document.getElementById('longTermGrid');
+        const emptyDiv = document.getElementById('ltEmpty');
         const signalTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        let found = 0;
+        
+        let tempHTML = "";
 
         for (let symbol of filteredCoins) {
             const candles = await getCandles(symbol, "4h"); if (!candles) continue;
@@ -719,42 +710,47 @@
             const sum50 = closes.slice(-50).reduce((a,b)=>a+b, 0), sma50 = sum50 / 50;
             const rsi = calculateRSI(closes, 14);
 
-            if (cur > sma50 && rsi > 50 && rsi < 65) {
-                found++;
-                
-                // Real score for Long-term buy
-                const realProb = calculateProbability(cur, sma50, rsi, "BUY");
+            let trend = "";
+            if (rsi < 35) trend = "BUY";
+            else if (rsi > 65) trend = "SELL";
 
-                let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
-                
-                const tp = cur + (volatility * 5); 
-                const sl = cur - (volatility * 3);
-                const earnPercent = (((tp - cur) / cur) * 100).toFixed(2);
-                
-                let days = "2-4";
-                if (volatility / cur < 0.01) days = "5-7";
-                else if (volatility / cur > 0.03) days = "1-2";
+            if (trend) {
+                const realProb = calculateProbability(cur, sma50, rsi, trend);
 
-                grid.innerHTML += `
-                    <div class="card" style="border-top: 3px solid var(--success-color)">
-                        <div style="float:right; color:var(--accent-color); font-size:11px; font-weight:bold;">${realProb}% PROBABILITY</div>
-                        <div class="card-symbol">${symbol.replace("USDT", "")}</div>
-                        <div style="color:var(--success-color); font-weight:bold;">LONG BUY</div>
-                        <div class="card-price">$${cur.toFixed(4)}</div>
-                        <div class="targets">
-                            <div class="row">Est. Profit <span style="color:#0ecb81">+${earnPercent}%</span></div>
-                            <div class="row">Target TP <span>$${tp.toFixed(4)}</span></div>
-                            <div class="row">Target SL <span style="color:var(--danger-color)">$${sl.toFixed(4)}</span></div>
-                            <div class="row" style="color:#848e9c;">Duration <span>${days} Days</span></div>
-                            <div style="font-size:10px; color:var(--warning-color); margin-top:5px; text-align:right;">Triggered at: ${signalTime}</div>
-                        </div>
-                        <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, 'LONG BUY')">📌 BOOK LONG</button>
-                    </div>`;
+                // 🔥 90% and above filters only
+                if (realProb >= 90) {
+                    let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
+                    
+                    const tp = trend === "BUY" ? cur + (volatility * 4) : cur - (volatility * 4); 
+                    const sl = trend === "BUY" ? cur - (volatility * 2.5) : cur + (volatility * 2.5);
+                    const earnPercent = (((Math.abs(tp - cur)) / cur) * 100).toFixed(2);
+                    
+                    let color = trend === 'BUY' ? 'var(--success-color)' : 'var(--danger-color)';
 
-                sendPushNotification(`🚀 Long Term Signal Detected!`, `${symbol.replace("USDT", "")} at $${cur.toFixed(4)} looking good!`);
+                    tempHTML += `
+                        <div class="card" style="border-top: 3px solid ${color}">
+                            <div style="float:right; color:var(--accent-color); font-size:11px; font-weight:bold;">${realProb}% PROBABILITY</div>
+                            <div class="card-symbol">${symbol.replace("USDT", "")}</div>
+                            <div style="color:${color}; font-weight:bold;">LONG ${trend}</div>
+                            <div class="card-price">$${cur.toFixed(4)}</div>
+                            <div class="targets">
+                                <div class="row">Est. Profit <span style="color:#0ecb81">+${earnPercent}%</span></div>
+                                <div class="row">Target TP <span>$${tp.toFixed(4)}</span></div>
+                                <div class="row">Stop Loss <span style="color:var(--danger-color)">$${sl.toFixed(4)}</span></div>
+                                <div style="font-size:10px; color:var(--warning-color); margin-top:5px; text-align:right;">Triggered at: ${signalTime}</div>
+                            </div>
+                            <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, 'LONG ${trend}')">📌 BOOK LONG</button>
+                        </div>`;
+
+                    sendPushNotification(`🚀 High Prob Signal Detected!`, `${symbol.replace("USDT", "")} matching 90%+ probability criteria!`);
+                }
             }
         }
-        document.getElementById('notifDot').style.display = found > 0 ? "block" : "none";
+        
+        if (tempHTML !== "") {
+            grid.innerHTML = tempHTML;
+            document.getElementById('notifDot').style.display = "block";
+        }
     }
 
     // --- 📂 BOOKED TRADES LOGIC ---
