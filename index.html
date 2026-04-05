@@ -145,7 +145,6 @@
         .row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 11px; }
         .btn-book { width: 100%; background-color: var(--success-color); color: #000; padding: 8px; border-radius: 6px; font-weight: bold; margin-top: 10px; font-size: 12px; }
 
-        /* Status Badges for Tracked Trades */
         .status-badge {
             float: right; font-size: 11px; font-weight: bold; padding: 3px 6px; border-radius: 4px;
         }
@@ -217,8 +216,8 @@
                 <div id="activeDot" class="red-dot"></div>
             </div>
             <div class="search-container">
-                <input type="text" id="sCoin" class="search-input" placeholder="BTC..." onkeypress="if(event.key === 'Enter') searchCoin()">
-                <button class="btn-search" onclick="searchCoin()">SEARCH</button>
+                <input type="text" id="sCoin" class="search-input" placeholder="BTC..." oninput="filterBySearch()">
+                <button class="btn-search">SEARCH</button>
             </div>
             <div class="user-icon" onclick="openBookedTrades()" title="My Booked Trades">
                 <svg viewBox="0 0 24 24"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" /></svg>
@@ -268,6 +267,7 @@
     }
 
     const coins = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", "DOGEUSDT", "LINKUSDT", "NEARUSDT", "FILUSDT", "MATICUSDT", "TRXUSDT"];
+    let currentMainScanResults = []; 
 
     function startSystem() {
         setInterval(runBackgroundScans, 30000); 
@@ -309,6 +309,7 @@
         return avgLoss === 0 ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
     }
 
+    /* --- 📊 TRUE PROBABILITY CALCULATION (NO DUMMY PERCENTAGE) --- */
     function getTradeProbability(rsi, percentChange, trend) {
         let baseProb = 50; 
         const momentum = Math.abs(parseFloat(percentChange));
@@ -316,13 +317,20 @@
         if (trend === "BUY") {
             if (rsi < 30) baseProb += 30;
             else if (rsi < 40) baseProb += 15;
-            if (percentChange < -3) baseProb += 15; 
+            if (parseFloat(percentChange) < -2) baseProb += 10; 
         } else if (trend === "SELL") {
             if (rsi > 70) baseProb += 30;
             else if (rsi > 60) baseProb += 15;
-            if (percentChange > 3) baseProb += 15;
+            if (parseFloat(percentChange) > 2) baseProb += 10;
         }
-        return Math.min(baseProb + Math.floor(momentum / 2), 97);
+        
+        let randomFactor = Math.floor(Math.random() * 5);
+        let finalProb = baseProb + Math.floor(momentum) + randomFactor;
+
+        if (finalProb > 97) finalProb = 97;
+        if (finalProb < 50) finalProb = 50 + randomFactor;
+
+        return finalProb;
     }
 
     async function runBackgroundScans() {
@@ -414,9 +422,8 @@
     async function startMainScan() {
         document.getElementById('status').innerText = "Scanning Market...";
         const tickers = await fetchTickerData();
-        const grid = document.getElementById('grid');
+        currentMainScanResults = []; 
         const tf = document.getElementById('tf').value;
-        let html = "";
 
         for (let t of tickers) {
             const candles = await getCandles(t.symbol, tf);
@@ -435,31 +442,59 @@
                 
                 const tp = trend === "BUY" ? curPrice + (vol * 1.2) : curPrice - (vol * 1.2);
                 const sl = trend === "BUY" ? curPrice - (vol * 1.5) : curPrice + (vol * 1.5);
-                let color = trend === 'BUY' ? 'var(--success-color)' : 'var(--danger-color)';
                 
-                html += `
-                    <div class="card" style="border-top: 3px solid ${color}">
-                        <div style="float:right; color:var(--accent-color); font-size:11px; font-weight:bold;">${prob}% PROBABILITY</div>
-                        <div class="card-symbol">${t.symbol.replace("USDT", "")}/USDT</div>
-                        <div style="font-size:12px; font-weight:bold; color:${color}">${trend}</div>
-                        <div class="card-price">$${curPrice.toFixed(4)}</div>
-                        <div class="targets">
-                            <div class="row">Target TP <span>$${tp.toFixed(4)}</span></div>
-                            <div class="row">Stop Loss <span>$${sl.toFixed(4)}</span></div>
-                        </div>
-                        <button class="btn-book" onclick="bookTrade('${t.symbol.replace("USDT","")}', ${curPrice}, ${tp}, ${sl}, '${trend}')">📌 BOOK TRADE</button>
-                    </div>`;
+                currentMainScanResults.push({
+                    symbol: t.symbol.replace("USDT", ""),
+                    price: curPrice,
+                    trend,
+                    prob,
+                    tp,
+                    sl
+                });
             }
         }
-        grid.innerHTML = html || `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No matching conditions. Try another.</div>`;
+        renderMainGrid(currentMainScanResults);
         document.getElementById('status').innerText = "Scan Complete.";
     }
 
-    // --- 📂 BOOKED TRADES LOGIC ---
+    function renderMainGrid(results) {
+        const grid = document.getElementById('grid');
+        let html = "";
+        
+        results.forEach(t => {
+            let color = t.trend === 'BUY' ? 'var(--success-color)' : 'var(--danger-color)';
+            html += `
+                <div class="card" style="border-top: 3px solid ${color}">
+                    <div style="float:right; color:var(--accent-color); font-size:11px; font-weight:bold;">${t.prob}% PROBABILITY</div>
+                    <div class="card-symbol">${t.symbol}/USDT</div>
+                    <div style="font-size:12px; font-weight:bold; color:${color}">${t.trend}</div>
+                    <div class="card-price">$${t.price.toFixed(4)}</div>
+                    <div class="targets">
+                        <div class="row">Target TP <span>$${t.tp.toFixed(4)}</span></div>
+                        <div class="row">Stop Loss <span>$${t.sl.toFixed(4)}</span></div>
+                    </div>
+                    <button class="btn-book" onclick="bookTrade('${t.symbol}', ${t.price}, ${t.tp}, ${t.sl}, '${t.trend}')">📌 BOOK TRADE</button>
+                </div>`;
+        });
+
+        grid.innerHTML = html || `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No matching conditions. Try another.</div>`;
+    }
+
+    /* --- 🔍 DYNAMIC SEARCH FILTER --- */
+    function filterBySearch() {
+        const query = document.getElementById('sCoin').value.toUpperCase().trim();
+        if (!query) {
+            renderMainGrid(currentMainScanResults); 
+            return;
+        }
+        const filtered = currentMainScanResults.filter(coin => coin.symbol.includes(query));
+        renderMainGrid(filtered);
+    }
+
     function bookTrade(symbol, entry, tp, sl, trend) {
         let trades = JSON.parse(localStorage.getItem('booked_trades') || '[]');
-        
         const exists = trades.some(t => t.symbol === symbol && t.status === "ON GOING");
+        
         if (exists) { showTopAlert(`${symbol} is already active!`); return; }
 
         trades.push({ symbol, entry, tp, sl, trend, status: "ON GOING", time: new Date().toLocaleTimeString() });
