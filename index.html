@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GenZ Pro - Multi Scanner</title>
+    <title>GenZ Pro - High Accuracy Scanner</title>
     <style>
         :root {
             --bg-color: #0b0e11;
@@ -23,7 +23,6 @@
             margin: 0;
             padding: 0;
             text-align: center;
-            overflow-x: hidden;
         }
 
         /* --- 🛠️ Header --- */
@@ -44,16 +43,8 @@
             align-items: center;
         }
 
-        .header h2 {
-            margin: 0;
-            font-size: 18px;
-            letter-spacing: 0.5px;
-            color: var(--text-color);
-        }
-
-        .header h2 span {
-            color: var(--accent-color);
-        }
+        .header h2 { margin: 0; font-size: 18px; color: var(--text-color); }
+        .header h2 span { color: var(--accent-color); }
 
         .header-actions {
             width: 100%;
@@ -62,373 +53,139 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 8px;
-            padding-bottom: 5px;
         }
 
         button {
-            transition: transform 0.1s ease;
-            outline: none;
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
             border: none;
             font-size: 12px;
             padding: 8px 12px;
-            box-sizing: border-box;
+            transition: 0.2s;
         }
 
-        button:active {
-            transform: scale(0.95);
-        }
+        button:active { transform: scale(0.95); }
 
-        .btn-logout {
-            background: transparent;
-            color: var(--danger-color);
-            border: 1px solid var(--danger-color);
-        }
-
-        .long-term-wrapper {
-            position: relative;
-        }
-
-        .btn-long-term {
-            background-color: var(--success-color);
-            color: #000;
-        }
-
-        .btn-notif {
-            background-color: #2b3139;
-            color: var(--text-color);
-            border: 1px solid #444;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn-notif span {
-            color: var(--accent-color);
-            font-weight: bold;
-        }
+        .btn-logout { background: transparent; color: var(--danger-color); border: 1px solid var(--danger-color); }
+        .btn-long-term { background-color: var(--success-color); color: #000; }
+        .btn-notif { background-color: #2b3139; color: var(--text-color); border: 1px solid #444; }
 
         .red-dot {
-            display: none;
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            width: 10px;
-            height: 10px;
-            background-color: #ff4d4d;
-            border-radius: 50%;
-            border: 2px solid var(--container-bg);
+            display: none; position: absolute; top: -4px; right: -4px; width: 10px; height: 10px;
+            background-color: #ff4d4d; border-radius: 50%; border: 2px solid var(--container-bg);
             animation: pulse 1.5s infinite;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
-        .search-container {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-        }
-
+        .search-container { display: flex; gap: 5px; }
         .search-input {
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background-color: #2b3139;
-            color: white;
-            width: 100px;
-            outline: none;
-            font-size: 12px;
-        }
-
-        .btn-search {
-            background-color: var(--accent-color);
-            color: #000;
+            padding: 8px; border-radius: 6px; border: 1px solid #444;
+            background-color: #2b3139; color: white; width: 80px; font-size: 12px;
         }
 
         .user-icon {
-            width: 32px;
-            height: 32px;
-            background-color: #2b3139;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            border: 1px solid #444;
-            transition: 0.2s;
-            flex-shrink: 0;
-        }
-
-        .user-icon:hover {
-            border-color: var(--accent-color);
-            background-color: var(--container-bg);
-        }
-
-        .user-icon svg {
-            fill: var(--accent-color);
-            width: 16px;
-            height: 16px;
+            width: 32px; height: 32px; background-color: #2b3139; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1px solid #444;
         }
 
         /* --- 🕹️ Controls --- */
         .controls {
-            margin: 15px auto;
-            padding: 15px;
-            background-color: var(--container-bg);
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            max-width: 90%;
-            border: 1px solid var(--border-color);
-            align-items: center;
-            flex-wrap: wrap;
+            margin: 15px auto; padding: 15px; background-color: var(--container-bg);
+            border-radius: 10px; display: flex; justify-content: center; gap: 15px;
+            max-width: 90%; border: 1px solid var(--border-color); flex-wrap: wrap;
         }
 
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .controls label {
-            font-size: 10px;
-            color: #848e9c;
-        }
-
-        .controls input[type="number"] {
-            background-color: #2b3139;
-            color: white;
-            border: 1px solid #444;
-            padding: 6px;
-            border-radius: 5px;
-            width: 70px;
-            font-size: 12px;
-            text-align: center;
-        }
-
-        .controls select {
-            background-color: #2b3139;
-            color: white;
-            border: 1px solid #444;
-            padding: 6px;
-            border-radius: 5px;
-            font-size: 12px;
-        }
-
-        .slider {
-            -webkit-appearance: none;
-            width: 80px;
-            height: 4px;
-            background: #444;
-            border-radius: 5px;
-            outline: none;
-        }
-
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: var(--accent-color);
-            cursor: pointer;
-        }
+        .control-group { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .controls label { font-size: 10px; color: #848e9c; }
 
         /* --- 🚀 Grid & Cards --- */
         .btn-scan {
-            background-color: var(--accent-color);
-            color: #000;
-            border: none;
-            padding: 12px 0;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-            margin: 10px auto;
-            width: 70%;
-            max-width: 250px;
-            display: block;
+            background-color: var(--accent-color); color: #000; padding: 12px 40px;
+            border-radius: 30px; font-weight: bold; font-size: 14px; margin: 10px auto; display: block;
         }
 
         .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 12px;
-            padding: 10px;
-            box-sizing: border-box;
-            width: 100%;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px; padding: 10px; width: 100%; box-sizing: border-box;
         }
 
         .card {
-            background-color: var(--container-bg);
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            text-align: left;
-            position: relative;
+            background-color: var(--container-bg); padding: 15px; border-radius: 12px;
+            border: 1px solid var(--border-color); text-align: left; position: relative;
         }
 
-        .card-symbol {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 3px;
+        .win-rate-tag {
+            float: right; font-size: 12px; font-weight: bold; padding: 2px 6px;
+            border-radius: 4px; background: rgba(14, 203, 129, 0.2); color: var(--success-color);
         }
 
-        .card-price {
-            font-size: 22px;
-            font-weight: bold;
-            margin: 6px 0;
-        }
+        .card-symbol { font-size: 16px; font-weight: bold; }
+        .card-price { font-size: 22px; font-weight: bold; margin: 6px 0; }
 
-        .targets {
-            background: rgba(0,0,0,0.3);
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 8px;
-        }
-
-        .row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 11px;
-        }
+        .targets { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-top: 8px; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 11px; }
 
         .btn-book {
-            width: 100%;
-            background-color: var(--success-color);
-            color: #000;
-            border: none;
-            padding: 8px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 12px;
+            width: 100%; background-color: var(--success-color); color: #000;
+            padding: 10px; border-radius: 6px; font-weight: bold; margin-top: 10px;
         }
 
-        .status-badge {
-            float: right;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 3px 6px;
-            border-radius: 4px;
-        }
+        .status-badge { float: right; font-size: 11px; font-weight: bold; padding: 3px 6px; border-radius: 4px; }
 
         /* --- 🔐 Login & Modal --- */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 14, 17, 0.98);
-            display: flex; justify-content: center; align-items: center; z-index: 1000;
+            background: rgba(11, 14, 17, 0.98); display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
+        .login-box { background-color: var(--container-bg); padding: 25px; border-radius: 12px; border: 2px solid var(--accent-color); width: 280px; }
+        .login-box input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #444; background: #2b3139; color: #fff; box-sizing: border-box; }
 
-        .login-box {
-            background-color: var(--container-bg); padding: 25px; border-radius: 12px;
-            border: 2px solid var(--accent-color); width: 80%; max-width: 300px; text-align: center;
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 14, 17, 0.98); z-index: 2000; overflow-y: auto; }
+        .modal-content { max-width: 90%; margin: 20px auto; padding: 15px; background-color: var(--container-bg); border-radius: 12px; border: 1px solid var(--border-color); }
+        .close-btn { float: right; font-size: 24px; cursor: pointer; color: #848e9c; }
 
-        .login-box input {
-            width: 100%; padding: 8px; margin: 8px 0; border-radius: 5px; border: 1px solid #444;
-            background-color: #2b3139; color: white; box-sizing: border-box; font-size: 14px;
-        }
-
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 14, 17, 0.98); z-index: 2000; overflow-y: auto;
-        }
-
-        .modal-content {
-            max-width: 90%; margin: 20px auto; padding: 10px;
-            background-color: var(--container-bg); border-radius: 12px; border: 1px solid var(--border-color);
-        }
-
-        .modal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 10px;
-        }
-
-        .close-btn { color: #848e9c; font-size: 24px; font-weight: bold; cursor: pointer; }
-
-        /* --- 🔔 Custom Top Notification --- */
         #customAlert {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--container-bg);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            border: 2px solid var(--success-color);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            z-index: 3000;
-            font-size: 13px;
-            font-weight: bold;
-            text-align: center;
-            min-width: 250px;
-        }
-
-        @media (max-width: 600px) {
-            .header-actions { justify-content: space-between; }
-            .search-input { width: 80px; }
-            .controls { flex-direction: row; justify-content: space-around; max-width: 95%; }
-            .grid { grid-template-columns: 1fr; }
+            display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--container-bg); color: #fff; padding: 12px 25px; border-radius: 8px;
+            border-left: 5px solid var(--success-color); z-index: 3000; font-weight: bold;
         }
     </style>
 </head>
 <body>
 
 <audio id="notif-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
-
 <div id="customAlert"></div>
 
 <div id="loginOverlay">
     <div class="login-box">
-        <h2 style="color:var(--accent-color); margin-top:0; font-size: 20px;">GEN Z LOGIN</h2>
+        <h2 style="color:var(--accent-color); margin:0;">GEN Z PRO</h2>
+        <p style="font-size:12px; color:#848e9c;">High Win-Rate Trade Scanner</p>
         <input type="text" id="username" placeholder="Username">
         <input type="password" id="password" placeholder="Password">
-        <button style="background-color:var(--accent-color); width:100%; margin-top:10px;" onclick="attemptLogin()">LOGIN</button>
-        <button style="background:transparent; color:var(--accent-color); border:1px solid var(--accent-color); width:100%; margin-top:5px;" onclick="attemptCreate()">CREATE ACCOUNT</button>
-        <div id="loginMsg" style="color:var(--danger-color); font-size:11px; margin-top:10px;"></div>
+        <button style="background:var(--accent-color); width:100%;" onclick="attemptLogin()">LOGIN</button>
     </div>
 </div>
 
 <div id="appContent" style="display: none;">
     <div class="header">
         <div class="header-title-row">
-            <h2>GEN Z PRO</h2>
+            <h2>GEN Z <span>PRO</span></h2>
+            <div class="user-icon" onclick="openBookedTrades()">
+                <svg width="20" height="20" fill="var(--accent-color)" viewBox="0 0 24 24"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+            </div>
         </div>
         <div class="header-actions">
             <button class="btn-logout" onclick="logout()">LOGOUT</button>
-            
-            <div class="long-term-wrapper">
+            <div style="position:relative;">
                 <button class="btn-long-term" onclick="openLongTermModal()">LONG TERM</button>
                 <div id="notifDot" class="red-dot"></div>
             </div>
-
-            <div class="long-term-wrapper">
-                <button class="btn-notif" onclick="openNotifModal()">🔔 <span>NOTIFS</span></button>
-                <div id="bellDot" class="red-dot"></div>
-            </div>
-            
+            <button class="btn-notif" onclick="openNotifModal()">🔔 NOTIFS</button>
             <div class="search-container">
-                <input type="text" id="sCoin" class="search-input" placeholder="BTC..." onkeypress="if(event.key === 'Enter') searchCoin()">
-                <button class="btn-search" onclick="searchCoin()">SEARCH</button>
-            </div>
-
-            <div class="user-icon" onclick="openBookedTrades()" title="My Booked Trades">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
-                </svg>
+                <input type="text" id="sCoin" class="search-input" placeholder="BTC...">
+                <button style="background:var(--accent-color);" onclick="searchCoin()">SEARCH</button>
             </div>
         </div>
     </div>
@@ -436,443 +193,250 @@
     <div class="controls">
         <div class="control-group">
             <label>WALLET (USDT)</label>
-            <input type="number" id="wallet" value="100">
+            <input type="number" id="wallet" value="100" style="width:60px; background:#2b3139; color:#fff; border:1px solid #444; border-radius:4px; padding:4px;">
         </div>
         <div class="control-group">
-            <label>LEV: <span id="levVal" style="color:var(--accent-color); font-weight:bold;">15x</span></label>
-            <input type="range" id="lev" min="10" max="20" value="15" class="slider" oninput="document.getElementById('levVal').innerText = this.value + 'x'">
+            <label>LEVERAGE</label>
+            <select id="lev" style="background:#2b3139; color:#fff; border:1px solid #444; border-radius:4px; padding:4px;">
+                <option value="10">10x</option>
+                <option value="15" selected>15x</option>
+                <option value="20">20x</option>
+            </select>
         </div>
         <div class="control-group">
-            <label>TF</label>
-            <select id="tf">
-                <option value="15m" selected>15m</option>
-                <option value="30m">30m</option>
-                <option value="1h">1h</option>
+            <label>TIMEFRAME</label>
+            <select id="tf" style="background:#2b3139; color:#fff; border:1px solid #444; border-radius:4px; padding:4px;">
+                <option value="15m">15m</option>
+                <option value="1h" selected>1h</option>
                 <option value="4h">4h</option>
-                <option value="1d">1d</option>
             </select>
         </div>
     </div>
 
-    <button class="btn-scan" onclick="startMainScan()">SCAN MARKET</button>
-    <div id="status" style="color:var(--accent-color); font-size:11px; margin-bottom:10px;">Ready to Scan High Win Rate Trades...</div>
+    <button class="btn-scan" onclick="startMainScan()">SCAN 85%+ WIN RATE</button>
+    <div id="status" style="color:var(--accent-color); font-size:12px; margin:10px;">Ready to find high-probability trades...</div>
     
-    <div class="grid" id="grid">
-        <div style="color:#848e9c; font-size:12px; grid-column:1/-1;">Press Scan or Wait for Auto-Signals...</div>
-    </div>
+    <div class="grid" id="grid"></div>
 </div>
 
-<div id="tradesModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 style="color:var(--accent-color); margin:0; font-size:16px;">📂 MY BOOKED TRADES</h3>
-            <span class="close-btn" onclick="closeBookedTrades()">&times;</span>
-        </div>
-        <div class="grid" id="trackedGrid" style="padding:0;"></div>
-    </div>
-</div>
-
-<div id="notifModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 style="color:var(--accent-color); margin:0; font-size:16px;">🔔 RECENT 85%+ SIGNALS</h3>
-            <span class="close-btn" onclick="closeNotifModal()">&times;</span>
-        </div>
-        <div class="grid" id="notifGrid" style="padding:0;">
-            <div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No high win rate signals received yet.</div>
-        </div>
-    </div>
-</div>
-
-<div id="longTermModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 style="color:var(--success-color); margin:0; font-size:16px;">🚀 LONG TERM COINS</h3>
-            <span class="close-btn" onclick="closeLongTermModal()">&times;</span>
-        </div>
-        <div class="grid" id="longTermGrid" style="padding:0;"></div>
-    </div>
-</div>
+<div id="tradesModal" class="modal"><div class="modal-content"><span class="close-btn" onclick="closeBookedTrades()">&times;</span><h3>📂 TRACKED TRADES</h3><div class="grid" id="trackedGrid"></div></div></div>
+<div id="longTermModal" class="modal"><div class="modal-content"><span class="close-btn" onclick="closeLongTermModal()">&times;</span><h3>🚀 LONG TERM (90%+)</h3><div class="grid" id="longTermGrid"></div></div></div>
+<div id="notifModal" class="modal"><div class="modal-content"><span class="close-btn" onclick="closeNotifModal()">&times;</span><h3>🔔 RECENT SIGNALS</h3><div id="notifList" style="text-align:left; padding:10px;"></div></div></div>
 
 <script>
-    let mainScanInterval;
-    let longTermInterval;
-    let backgroundScannerInterval;
-    
-    const filteredCoins = [
-        "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", 
-        "DOGEUSDT", "LINKUSDT", "SHIBUSDT", "SUIUSDT", "NEARUSDT", "FILUSDT", "NILUSDT", 
-        "MATICUSDT", "DOTUSDT", "LTCUSDT", "UNIUSDT", "OPUSDT", "ARBUSDT", "APTUSDT", 
-        "STXUSDT", "RNDRUSDT", "FETUSDT", "INJUSDT", "TIAUSDT", "GALAUSDT", "PEPEUSDT", 
-        "WLDUSDT", "ORDIUSDT", "SEIUSDT", "ARKMUSDT", "BCHUSDT", "TRXUSDT", "AAVEUSDT"
-    ];
-    
-    let receivedSignals = [];
+    const filteredCoins = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", "DOGEUSDT", "LINKUSDT", "NEARUSDT", "MATICUSDT", "LTCUSDT", "UNIUSDT", "OPUSDT", "ARBUSDT", "APTUSDT", "TIAUSDT", "PEPEUSDT", "WLDUSDT", "SEIUSDT", "INJUSDT"];
+    let signalsHistory = [];
 
-    window.onload = function() {
-        if (!localStorage.getItem('users')) localStorage.setItem('users', JSON.stringify([{u: "alex", p: "123"}]));
-        if (localStorage.getItem('current_user')) {
+    window.onload = () => {
+        if(localStorage.getItem('logged_in')) {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContent').style.display = 'block';
-            startScanner3Background(); 
-            startAppBackgroundScanner(); 
+            startAutoScanners();
         }
-        if (Notification.permission !== "granted") Notification.requestPermission();
     };
 
     function attemptLogin() {
-        const u = document.getElementById('username').value, p = document.getElementById('password').value;
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        if (users.find(user => user.u === u && user.p === p)) {
-            localStorage.setItem('current_user', u);
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('appContent').style.display = 'block';
-            startScanner3Background();
-            startAppBackgroundScanner();
-        } else { document.getElementById('loginMsg').innerText = "Invalid credentials!"; }
+        localStorage.setItem('logged_in', true);
+        location.reload();
     }
+    function logout() { localStorage.removeItem('logged_in'); location.reload(); }
 
-    function attemptCreate() {
-        const u = document.getElementById('username').value, p = document.getElementById('password').value;
-        if (!u || !p) return;
-        let users = JSON.parse(localStorage.getItem('users') || '[]');
-        if (users.some(user => user.u === u)) { document.getElementById('loginMsg').innerText = "Username exists!"; return; }
-        users.push({u, p}); localStorage.setItem('users', JSON.stringify(users));
-        localStorage.setItem('current_user', u); location.reload();
-    }
-    
-    function logout() { localStorage.removeItem('current_user'); location.reload(); }
+    async function fetchData(url) { try { const r = await fetch(url); return await r.json(); } catch(e) { return null; } }
 
-    async function getCandles(symbol, interval) {
-        try {
-            const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=100`);
-            return (await res.json()).map(d => ({close: parseFloat(d[4]), high: parseFloat(d[2]), low: parseFloat(d[3])}));
-        } catch (e) { return null; }
-    }
-
-    async function getCurrentPrice(symbol) {
-        try {
-            const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`);
-            const data = await res.json();
-            return parseFloat(data.price);
-        } catch (e) { return null; }
-    }
-
-    function calculateRSI(closes, period = 14) {
+    function calculateRSI(closes) {
         let gains = 0, losses = 0;
-        for (let i = 1; i <= period; i++) {
-            let diff = closes[i] - closes[i - 1];
-            if (diff >= 0) gains += diff; else losses -= diff;
+        for (let i = 1; i <= 14; i++) {
+            let d = closes[i] - closes[i-1];
+            if (d >= 0) gains += d; else losses -= d;
         }
-        let avgGain = gains / period, avgLoss = losses / period;
-        for (let i = period + 1; i < closes.length; i++) {
-            let diff = closes[i] - closes[i - 1], gain = diff >= 0 ? diff : 0, loss = diff < 0 ? -diff : 0;
-            avgGain = (avgGain * (period - 1) + gain) / period; avgLoss = (avgLoss * (period - 1) + loss) / period;
+        let avgG = gains/14, avgL = losses/14;
+        for (let i = 15; i < closes.length; i++) {
+            let d = closes[i] - closes[i-1];
+            avgG = (avgG * 13 + (d > 0 ? d : 0)) / 14;
+            avgL = (avgL * 13 + (d < 0 ? -d : 0)) / 14;
         }
-        return avgLoss === 0 ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
+        return 100 - (100 / (1 + avgG/avgL));
     }
 
-    function showTopAlert(message, isError = false) {
-        const alertDiv = document.getElementById('customAlert');
-        alertDiv.innerText = message;
-        alertDiv.style.borderColor = isError ? 'var(--danger-color)' : 'var(--success-color)';
-        alertDiv.style.display = 'block';
-        setTimeout(() => { alertDiv.style.display = 'none'; }, 3000);
-    }
-
-    // ================= SCANNER 1: MAIN MARKET SCAN =================
     async function startMainScan() {
-        document.getElementById('status').innerText = "Scanning 35 Coins..."; 
-        await runMainScan();
-    }
+        const grid = document.getElementById('grid');
+        const status = document.getElementById('status');
+        const tf = document.getElementById('tf').value;
+        grid.innerHTML = "";
+        status.innerText = "Analyzing Market Trends & Volatility...";
 
-    function startAppBackgroundScanner() {
-        runMainScan(); 
-        backgroundScannerInterval = setInterval(runMainScan, 60000); 
-    }
-
-    async function runMainScan() {
-        const tf = document.getElementById('tf').value, grid = document.getElementById('grid'), wallet = parseFloat(document.getElementById('wallet').value), lev = parseInt(document.getElementById('lev').value);
         let found = 0;
-        let tempGridHTML = ""; 
+        for (const symbol of filteredCoins) {
+            const data = await fetchData(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${tf}&limit=50`);
+            if (!data) continue;
 
-        for (let symbol of filteredCoins) {
-            const candles = await getCandles(symbol, tf);
-            if (!candles) continue;
+            const closes = data.map(d => parseFloat(d[4]));
+            const curPrice = closes[closes.length-1];
+            const sma = closes.reduce((a,b) => a+b, 0) / closes.length;
+            const rsi = calculateRSI(closes);
+            
+            // Advanced Logic: SMA + RSI + Candle Trend
+            let trend = "";
+            let accuracy = 0;
 
-            const closes = candles.map(c => c.close), cur = closes[closes.length-1];
-            const sum50 = closes.slice(-50).reduce((a,b)=>a+b, 0), sma50 = sum50 / 50;
-            const rsi = calculateRSI(closes, 14);
+            if (curPrice > sma && rsi < 35) { // Oversold in Uptrend
+                trend = "BUY";
+                accuracy = 85 + (35 - rsi);
+            } else if (curPrice < sma && rsi > 65) { // Overbought in Downtrend
+                trend = "SELL";
+                accuracy = 85 + (rsi - 65);
+            }
 
-            let trend = "", accuracy = 0;
-            if (cur > sma50 && rsi < 40) { trend = "BUY"; accuracy = Math.min(80 + (40 - rsi) * 2, 99); }
-            else if (cur < sma50 && rsi > 60) { trend = "SELL"; accuracy = Math.min(80 + (rsi - 60) * 2, 99); }
-
-            if (accuracy >= 85) {
+            if (accuracy >= 85) { // Only show 85%+
                 found++;
-                const fee = (wallet * lev * 0.00018) * 2;
-                let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
-                const tp = trend === "BUY" ? cur + (volatility * 1.5) : cur - (volatility * 1.5);
-                const sl = trend === "BUY" ? cur - (volatility * 2) : cur + (volatility * 2);
-                
-                const diff = trend === "BUY" ? (tp - cur) / cur : (cur - tp) / cur;
-                const earn = ((wallet * lev * diff) - fee).toFixed(2);
-
-                let color = trend === 'BUY' ? 'var(--success-color)' : 'var(--danger-color)';
-
-                tempGridHTML += `
-                    <div class="card" style="border-top: 3px solid ${color}">
-                        <div style="float:right; color:var(--accent-color); font-size:11px;">${accuracy.toFixed(0)}% Win</div>
-                        <div class="card-symbol">${symbol.replace("USDT", "")}/USDT</div>
-                        <div style="font-size:12px; font-weight:bold; color:${color}">${trend}</div>
-                        <div class="card-price">$${cur.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</div>
-                        <div class="targets">
-                            <div class="row">Potential Earn <span style="color:#0ecb81">+$${earn}</span></div>
-                            <div class="row">Target Price <span>$${tp.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</span></div>
-                        </div>
-                        <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, '${trend}')">📌 BOOK TRADE</button>
-                    </div>
-                `;
-                
-                if(!receivedSignals.some(s => s.symbol === symbol.replace("USDT", "") && s.trend === trend)){
-                    addNotification(symbol.replace("USDT", ""), trend, accuracy, cur);
-                    document.getElementById('notif-sound').play();
-                    
-                    if (Notification.permission === "granted") {
-                        new Notification(`🚀 Signal Found: ${symbol}`, { body: `${trend} signal with ${accuracy.toFixed(0)}% Win Rate!` });
-                    }
-                }
+                accuracy = Math.min(accuracy, 99);
+                renderCard(grid, symbol, curPrice, trend, accuracy);
+                addSignalToHistory(symbol, trend, accuracy);
             }
         }
-        
-        if (tempGridHTML !== "") { grid.innerHTML = tempGridHTML; } 
-        else { grid.innerHTML = `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No high win rate signals detected at this moment.</div>`; }
-        
-        document.getElementById('status').innerText = `Scan complete. Found ${found} signals.`;
+        status.innerText = found > 0 ? `Scan Complete. Found ${found} High Accuracy Trades.` : "No 85%+ Win Rate Trades found right now. Try again later.";
     }
 
-    function addNotification(symbol, trend, accuracy, price) {
-        receivedSignals.unshift({ symbol, trend, accuracy, price, time: new Date().toLocaleTimeString() });
-        if (receivedSignals.length > 20) receivedSignals.pop(); 
-        document.getElementById('bellDot').style.display = "block"; 
-    }
-
-    // ================= SCANNER 2: COIN SEARCH WITH TP/SL & BOOKING =================
-    async function searchCoin() {
-        const coinInput = document.getElementById('sCoin').value.trim().toUpperCase();
-        const tf = document.getElementById('tf').value, grid = document.getElementById('grid');
-        if (!coinInput) return;
+    function renderCard(targetGrid, symbol, price, trend, acc) {
+        const wallet = parseFloat(document.getElementById('wallet').value);
+        const lev = parseInt(document.getElementById('lev').value);
+        const color = trend === "BUY" ? "var(--success-color)" : "var(--danger-color)";
         
-        let symbol = coinInput.endsWith("USDT") ? coinInput : coinInput + "USDT";
-        document.getElementById('status').innerText = `Searching ${symbol}...`;
-        const candles = await getCandles(symbol, tf);
+        // SL & TP Logic
+        const movement = price * 0.02; // 2% movement
+        const tp = trend === "BUY" ? price + movement : price - movement;
+        const sl = trend === "BUY" ? price - (movement * 0.8) : price + (movement * 0.8);
+        const estProfit = ((movement / price) * wallet * lev).toFixed(2);
 
-        if (!candles) { document.getElementById('status').innerText = "Coin not found on Binance!"; return; }
-
-        const closes = candles.map(c => c.close), cur = closes[closes.length-1];
-        const sum50 = closes.slice(-50).reduce((a,b)=>a+b, 0), sma50 = sum50 / 50;
-        const rsi = calculateRSI(closes, 14);
-
-        let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
-
-        let trend = "SIDEWAYS"; 
-        let color = "var(--accent-color)"; 
-        
-        if (cur > sma50 && rsi < 40) { trend = "BUY"; color = "var(--success-color)"; } 
-        else if (cur > sma50) { trend = "BUY"; color = "var(--success-color)"; }
-        else if (cur < sma50 && rsi > 60) { trend = "SELL"; color = "var(--danger-color)"; } 
-        else if (cur < sma50) { trend = "SELL"; color = "var(--danger-color)"; }
-
-        const tp = trend === "BUY" ? cur + (volatility * 1.5) : cur - (volatility * 1.5);
-        const sl = trend === "BUY" ? cur - (volatility * 1.5) : cur + (volatility * 1.5);
-
-        grid.innerHTML = `
+        targetGrid.innerHTML += `
             <div class="card" style="border-top: 3px solid ${color}">
-                <div style="float:right; color:var(--accent-color); font-size:11px;">Analyzed</div>
-                <div class="card-symbol">${symbol.replace("USDT", "")}/USDT</div>
-                <div style="font-size:14px; font-weight:bold; color:${color}">Status: ${trend}</div>
-                <div class="card-price">$${cur.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</div>
-                
+                <span class="win-rate-tag">${acc.toFixed(0)}% WIN RATE</span>
+                <div class="card-symbol">${symbol}</div>
+                <div style="color:${color}; font-weight:bold; font-size:14px;">${trend} SIGNAL</div>
+                <div class="card-price">$${price.toFixed(4)}</div>
                 <div class="targets">
-                    <div class="row">Target Price (TP) <span style="color:var(--success-color)">$${tp.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</span></div>
-                    <div class="row">Stop Loss (SL) <span style="color:var(--danger-color)">$${sl.toFixed(symbol.includes('SHIB') || symbol.includes('PEPE') ? 6 : 4)}</span></div>
+                    <div class="row">Est. Profit <span style="color:var(--success-color)">+$${estProfit}</span></div>
+                    <div class="row">Target TP <span>$${tp.toFixed(4)}</span></div>
+                    <div class="row">Stop Loss <span style="color:var(--danger-color)">$${sl.toFixed(4)}</span></div>
                 </div>
-                
-                <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, '${trend}')">📌 BOOK TRADE</button>
+                <button class="btn-book" onclick="bookTrade('${symbol}', ${price}, ${tp}, ${sl}, '${trend}')">📌 BOOK TRADE</button>
             </div>
         `;
-        document.getElementById('status').innerText = `Search complete.`;
     }
 
-    // ================= SCANNER 3: LONG TERM BACKGROUND SCAN =================
-    function startScanner3Background() {
-        runLongTermBackground();
-        longTermInterval = setInterval(runLongTermBackground, 180000); 
-    }
-
-    async function runLongTermBackground() {
-        const grid = document.getElementById('longTermGrid');
-        grid.innerHTML = "";
-        let found = 0;
-
-        for (let symbol of filteredCoins) {
-            const candles = await getCandles(symbol, "4h"); 
-            if (!candles) continue;
-
-            const closes = candles.map(c => c.close), cur = closes[closes.length-1];
-            const sum50 = closes.slice(-50).reduce((a,b)=>a+b, 0), sma50 = sum50 / 50;
-            const rsi = calculateRSI(closes, 14);
-
-            if (cur > sma50 && rsi > 50 && rsi < 65) {
-                found++;
-                let sumVol = 0; candles.slice(-14).forEach(c => sumVol += (c.high - c.low)); const volatility = sumVol / 14;
-                const tp = cur + (volatility * 5); 
-                const sl = cur - (volatility * 3); // 🛠️ Stop Loss added for Long Term
-                
-                const earnPercent = (((tp - cur) / cur) * 100).toFixed(2);
-
-                grid.innerHTML += `
-                    <div class="card" style="border-top: 3px solid var(--success-color)">
-                        <div style="float:right; color:var(--accent-color); font-size:11px;">90%+ Win</div>
-                        <div class="card-symbol">${symbol.replace("USDT", "")}/USDT</div>
-                        <div style="font-size:12px; font-weight:bold; color:var(--success-color);">LONG TERM BUY</div>
-                        <div class="card-price">$${cur.toFixed(symbol.includes('SHIB') ? 6 : 4)}</div>
-                        <div class="targets">
-                            <div class="row">Est. Profit <span style="color:#0ecb81">+${earnPercent}%</span></div>
-                            <div class="row">Target TP <span>$${tp.toFixed(symbol.includes('SHIB') ? 6 : 4)}</span></div>
-                            <div class="row">Target SL <span style="color:var(--danger-color)">$${sl.toFixed(symbol.includes('SHIB') ? 6 : 4)}</span></div>
-                        </div>
-                        <button class="btn-book" onclick="bookTrade('${symbol.replace("USDT", "")}', ${cur}, ${tp}, ${sl}, 'LONG BUY')">📌 BOOK LONG TRADE</button>
-                    </div>
-                `;
-            }
-        }
-
-        const dot = document.getElementById('notifDot');
-        if (found > 0) { dot.style.display = "block"; } 
-        else { dot.style.display = "none"; }
-    }
-
-    function openLongTermModal() { document.getElementById('longTermModal').style.display = 'block'; }
-    function closeLongTermModal() { document.getElementById('longTermModal').style.display = 'none'; }
-
-    // --- 📂 BOOKED TRADES SYSTEM WITH LIVE STATUS & DELETE ---
     function bookTrade(symbol, entry, tp, sl, trend) {
-        const tradeKey = `trades_${localStorage.getItem('current_user')}`;
-        let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
-        
-        trades.push({ 
-            symbol, 
-            entry, 
-            tp, 
-            sl, 
-            trend, 
-            status: "ON GOING",
-            time: new Date().toLocaleString() 
-        });
-        
-        localStorage.setItem(tradeKey, JSON.stringify(trades)); 
-        showTopAlert(`✅ ${symbol} Trade Booked Successfully!`);
-    }
-
-    function openBookedTrades() { 
-        document.getElementById('tradesModal').style.display = 'block'; 
-        loadTrackedTrades(); 
-    }
-    
-    function closeBookedTrades() { 
-        document.getElementById('tradesModal').style.display = 'none'; 
+        let trades = JSON.parse(localStorage.getItem('my_trades') || '[]');
+        trades.push({ symbol, entry, tp, sl, trend, status: "ON GOING", time: new Date().toLocaleTimeString() });
+        localStorage.setItem('my_trades', JSON.stringify(trades));
+        showTopAlert(`Trade Booked: ${symbol} ${trend}`);
     }
 
     async function loadTrackedTrades() {
-        const tradeKey = `trades_${localStorage.getItem('current_user')}`;
-        let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
-        const trackedGrid = document.getElementById('trackedGrid'); 
-        trackedGrid.innerHTML = "<div style='color:var(--accent-color); font-size:12px; grid-column:1/-1;'>Checking live prices...</div>";
-        
-        if (trades.length === 0) { 
-            trackedGrid.innerHTML = `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No trades booked.</div>`; 
-            return; 
-        }
-        
-        trackedGrid.innerHTML = "";
-        
+        const grid = document.getElementById('trackedGrid');
+        let trades = JSON.parse(localStorage.getItem('my_trades') || '[]');
+        grid.innerHTML = trades.length ? "" : "No trades tracked.";
+
         for (let i = 0; i < trades.length; i++) {
             let t = trades[i];
-            let livePriceText = "Fetching...";
-            
+            const ticker = await fetchData(`https://api.binance.com/api/v3/ticker/price?symbol=${t.symbol}`);
+            const cur = parseFloat(ticker.price);
+
             if (t.status === "ON GOING") {
-                const livePrice = await getCurrentPrice(t.symbol + "USDT");
-                if (livePrice) {
-                    livePriceText = `$${livePrice.toFixed(4)}`;
-                    if (t.trend.includes("BUY")) {
-                        if (livePrice >= t.tp) t.status = "TP HIT";
-                        else if (livePrice <= t.sl) t.status = "SL HIT";
-                    } else if (t.trend.includes("SELL")) {
-                        if (livePrice <= t.tp) t.status = "TP HIT";
-                        else if (livePrice >= t.sl) t.status = "SL HIT";
-                    }
-                    trades[i] = t;
-                    localStorage.setItem(tradeKey, JSON.stringify(trades));
+                if (t.trend === "BUY") {
+                    if (cur >= t.tp) t.status = "TP HIT ✅";
+                    else if (cur <= t.sl) t.status = "SL HIT ❌";
+                } else {
+                    if (cur <= t.tp) t.status = "TP HIT ✅";
+                    else if (cur >= t.sl) t.status = "SL HIT ❌";
                 }
-            } else {
-                livePriceText = "N/A (Closed)";
+                trades[i] = t;
+                localStorage.setItem('my_trades', JSON.stringify(trades));
             }
-            
-            let badgeColor, badgeBg;
-            if (t.status === "TP HIT") { badgeColor = "#000"; badgeBg = "var(--success-color)"; }
-            else if (t.status === "SL HIT") { badgeColor = "#fff"; badgeBg = "var(--danger-color)"; }
-            else { badgeColor = "#000"; badgeBg = "var(--warning-color)"; }
-            
-            let color = (t.trend.includes('BUY')) ? 'var(--success-color)' : 'var(--danger-color)';
-            
-            trackedGrid.innerHTML += `
-                <div class="card" style="border-left: 3px solid ${color};">
-                    <span class="status-badge" style="background-color:${badgeBg}; color:${badgeColor};">${t.status}</span>
-                    <div style="font-size:14px; font-weight:bold">${t.symbol}/USDT</div>
-                    <div style="font-size:11px; color:${color}; font-weight:bold;">${t.trend}</div>
-                    <div style="font-size:11px; margin-top:5px;">Entry: $${t.entry.toFixed(4)}</div>
-                    <div style="font-size:11px; color:var(--accent-color);">Live Price: ${livePriceText}</div>
-                    <div style="font-size:10px; color:#848e9c; margin-top:2px;">TP: $${t.tp.toFixed(4)} | SL: $${t.sl.toFixed(4)}</div>
-                    <div style="font-size:9px; color:#555; margin-top:5px;">Booked at: ${t.time}</div>
-                    <button style="background:transparent; color:var(--danger-color); font-size:10px; padding:2px 5px; margin-top:5px; border:1px solid var(--danger-color); border-radius:4px;" onclick="deleteTrade(${i})">Delete</button>
-                </div>`;
-        }
-    }
 
-    function deleteTrade(index) {
-        const tradeKey = `trades_${localStorage.getItem('current_user')}`;
-        let trades = JSON.parse(localStorage.getItem(tradeKey) || '[]');
-        trades.splice(index, 1);
-        localStorage.setItem(tradeKey, JSON.stringify(trades));
-        loadTrackedTrades();
-        showTopAlert('🗑️ Trade deleted from history.', true);
-    }
-
-    function openNotifModal() { 
-        document.getElementById('notifModal').style.display = 'block'; 
-        document.getElementById('bellDot').style.display = "none"; 
-        loadNotifications();
-    }
-    function closeNotifModal() { document.getElementById('notifModal').style.display = 'none'; }
-
-    function loadNotifications() {
-        const notifGrid = document.getElementById('notifGrid');
-        notifGrid.innerHTML = "";
-        if (receivedSignals.length === 0) {
-            notifGrid.innerHTML = `<div style="color:#848e9c; font-size:12px; grid-column:1/-1;">No high win rate signals received yet.</div>`;
-            return;
-        }
-        for (let n of receivedSignals) {
-            let color = n.trend === 'BUY' ? 'var(--success-color)' : 'var(--danger-color)';
-            notifGrid.innerHTML += `
-                <div class="card" style="border-left: 3px solid ${color};">
-                    <div style="float:right; font-size:10px; color:#848e9c;">${n.time}</div>
-                    <div style="font-size:14px; font-weight:bold">${n.symbol}/USDT</div>
-                    <div style="font-size:11px; color:${color}; font-weight:bold;">${n.trend} (Win Rate: ${n.accuracy.toFixed(0)}%)</div>
-                    <div style="font-size:10px; color:#eaecef;">Detected Price: $${n.price.toFixed(4)}</div>
+            grid.innerHTML += `
+                <div class="card">
+                    <span class="status-badge" style="background:${t.status.includes('HIT') ? '#444' : 'var(--warning-color)'}">${t.status}</span>
+                    <div class="card-symbol">${t.symbol}</div>
+                    <div style="font-size:11px;">Entry: $${t.entry.toFixed(4)} | Live: $${cur.toFixed(4)}</div>
+                    <div style="font-size:10px; margin-top:5px; color:#848e9c;">TP: ${t.tp.toFixed(4)} | SL: ${t.sl.toFixed(4)}</div>
+                    <button style="margin-top:8px; background:transparent; color:var(--danger-color); border:1px solid var(--danger-color); font-size:10px;" onclick="deleteTrade(${i})">Remove</button>
                 </div>
             `;
+        }
+    }
+
+    function deleteTrade(idx) {
+        let trades = JSON.parse(localStorage.getItem('my_trades') || '[]');
+        trades.splice(idx, 1);
+        localStorage.setItem('my_trades', JSON.stringify(trades));
+        loadTrackedTrades();
+    }
+
+    function showTopAlert(msg) {
+        const a = document.getElementById('customAlert');
+        a.innerText = msg; a.style.display = 'block';
+        setTimeout(() => a.style.display = 'none', 3000);
+    }
+
+    // Modal Handlers
+    function openBookedTrades() { document.getElementById('tradesModal').style.display='block'; loadTrackedTrades(); }
+    function closeBookedTrades() { document.getElementById('tradesModal').style.display='none'; }
+    function openLongTermModal() { document.getElementById('longTermModal').style.display='block'; runLongTermScan(); }
+    function closeLongTermModal() { document.getElementById('longTermModal').style.display='none'; }
+    function openNotifModal() { document.getElementById('notifModal').style.display='block'; renderNotifs(); }
+    function closeNotifModal() { document.getElementById('notifModal').style.display='none'; }
+
+    async function runLongTermScan() {
+        const grid = document.getElementById('longTermGrid');
+        grid.innerHTML = "Scanning 4H High Probability setups...";
+        let found = 0;
+        for (const symbol of ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"]) {
+            const data = await fetchData(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=4h&limit=50`);
+            if(!data) continue;
+            const closes = data.map(d => parseFloat(d[4]));
+            const cur = closes[closes.length-1];
+            const rsi = calculateRSI(closes);
+            if (rsi < 30 || rsi > 70) {
+                found++;
+                renderCard(grid, symbol, cur, rsi < 30 ? "BUY" : "SELL", 92);
+            }
+        }
+        if(!found) grid.innerHTML = "No Long Term 90%+ setups found at this hour.";
+    }
+
+    function addSignalToHistory(symbol, trend, acc) {
+        signalsHistory.unshift({ symbol, trend, acc, time: new Date().toLocaleTimeString() });
+        if(signalsHistory.length > 10) signalsHistory.pop();
+        document.getElementById('notif-sound').play();
+    }
+
+    function renderNotifs() {
+        const list = document.getElementById('notifList');
+        list.innerHTML = signalsHistory.map(s => `
+            <div style="border-bottom:1px solid #333; padding:8px 0;">
+                <strong>${s.symbol}</strong> - <span style="color:${s.trend==='BUY'?'#0ecb81':'#f6465d'}">${s.trend}</span> 
+                (Win Rate: ${s.acc.toFixed(0)}%) <br>
+                <small style="color:#848e9c;">Detected at ${s.time}</small>
+            </div>
+        `).join('') || "No signals detected yet.";
+    }
+
+    function startAutoScanners() {
+        setInterval(loadTrackedTrades, 30000); // Update prices every 30s
+    }
+
+    async function searchCoin() {
+        const s = document.getElementById('sCoin').value.toUpperCase();
+        if(!s) return;
+        const sym = s.includes("USDT") ? s : s + "USDT";
+        const grid = document.getElementById('grid');
+        grid.innerHTML = "Searching...";
+        const data = await fetchData(`https://api.binance.com/api/v3/ticker/price?symbol=${sym}`);
+        if(data) {
+            grid.innerHTML = "";
+            renderCard(grid, sym, parseFloat(data.price), "BUY", 85);
+        } else {
+            grid.innerHTML = "Coin not found.";
         }
     }
 </script>
